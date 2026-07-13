@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SAES Report — {{ doc.config_name }}</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font: 14px/1.5 system-ui, sans-serif; margin: 0; padding: 2rem;
+         background: #fbfbfd; color: #1a1a1a; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #16161a; color: #e6e6e6; }
+    .card, table { background: #1f1f26; }
+    th { background: #2a2a33; }
+    td, th { border-color: #33333d; }
+  }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+  .sub { color: #888; margin-bottom: 1.5rem; }
+  .cards { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; }
+  .card { background: #fff; border-radius: 10px; padding: 1rem 1.25rem;
+          box-shadow: 0 1px 3px rgba(0,0,0,.08); min-width: 160px; }
+  .card .metric { font-size: 1.8rem; font-weight: 600; }
+  .card .name { color: #888; font-size: .85rem; }
+  table { width: 100%; border-collapse: collapse; background: #fff;
+          border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  th, td { text-align: left; padding: .6rem .8rem; border-bottom: 1px solid #eee;
+           vertical-align: top; }
+  th { background: #f4f4f7; font-weight: 600; }
+  .score { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .bar { height: 6px; border-radius: 3px; background: #e5e5ea; margin-top: 4px; }
+  .bar > span { display: block; height: 100%; border-radius: 3px; background: #34c759; }
+  .pass { color: #1a8a3a; } .fail { color: #c0392b; } .err { color: #b8860b; }
+  .pill { display: inline-block; padding: .1rem .5rem; border-radius: 999px;
+          font-size: .78rem; font-weight: 600; }
+  .pill.ok { background: #d6f5df; color: #12813a; }
+  .pill.bad { background: #fbdcd7; color: #b02a17; }
+  details { margin: 0; } summary { cursor: pointer; }
+  .reason { white-space: pre-wrap; color: #555; margin-top: .35rem; font-size: .9rem; }
+  @media (prefers-color-scheme: dark) { .reason { color: #aaa; } }
+  section { margin-bottom: 2rem; }
+</style>
+</head>
+<body>
+  <h1>SAES Evaluation Report</h1>
+  <div class="sub">
+    {{ doc.config_name }} · judge: <code>{{ doc.judge_model }}</code> ·
+    {{ doc.session_ids|length }} session(s) · {{ doc.evaluator_ids|length }} evaluator(s)
+  </div>
+
+  {% if doc.gate is not none %}
+  <section>
+    <span class="pill {{ 'ok' if doc.gate.passed else 'bad' }}">
+      GATE {{ 'PASSED' if doc.gate.passed else 'FAILED' }}
+    </span>
+    <table style="margin-top:.75rem">
+      <tr><th>Rule</th><th>Actual</th><th>Result</th></tr>
+      {% for c in doc.gate.checks %}
+      <tr>
+        <td><code>{{ c.rule }}</code></td>
+        <td class="score">{{ '%.3f'|format(c.actual) }}</td>
+        <td class="{{ 'pass' if c.passed else 'fail' }}">{{ 'PASS' if c.passed else 'FAIL' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </section>
+  {% endif %}
+
+  <section>
+    <div class="cards">
+      <div class="card">
+        <div class="metric">{{ '%.2f'|format(doc.overall_score) }}</div>
+        <div class="name">Overall</div>
+      </div>
+      {% for ev_id, stats in doc.aggregates.items() %}
+      <div class="card">
+        <div class="metric">{{ '%.2f'|format(stats.avg) }}</div>
+        <div class="name">{{ ev_id }}</div>
+        <div class="bar"><span style="width: {{ (stats.avg * 100)|round }}%"></span></div>
+        <div class="name" style="margin-top:.4rem">
+          pass {{ '%.0f'|format(stats.pass_rate * 100) }}% · n={{ stats.n|int }}
+          {% if stats.errored %}· <span class="err">{{ stats.errored|int }} errored</span>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section>
+    <h2 style="font-size:1.1rem">Per-result detail</h2>
+    <table>
+      <tr><th>Session</th><th>Evaluator</th><th>Score</th><th>Judge reasoning</th></tr>
+      {% for r in doc.rows %}
+      <tr>
+        <td>{{ r.session_id }}</td>
+        <td>{{ r.evaluator_id }}</td>
+        <td class="score {{ 'err' if r.errored }}">
+          {% if r.errored %}ERR{% else %}{{ '%.2f'|format(r.score) }}{% endif %}
+        </td>
+        <td>
+          <details>
+            <summary>{{ r.label or ('%.2f'|format(r.score)) }}</summary>
+            <div class="reason">{{ r.reason }}</div>
+          </details>
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </section>
+</body>
+</html>

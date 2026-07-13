@@ -1,0 +1,19 @@
+name: rag-quality
+mode: on_demand
+dataSource:
+  type: otlp_file
+  path: ./traces.otlp.jsonl
+judge:
+  provider: openai_compatible
+  model: gpt-4.1
+  base_url: https://your-endpoint/v1
+  api_key_env: SAES_JUDGE_API_KEY
+  params:
+    temperature: 0.0
+evaluators:
+- Builtin.Correctness
+- Builtin.Faithfulness
+- Builtin.ResponseRelevance
+resultsSink:
+  local:
+    html_report: ./out/report.html

@@ -1,0 +1,4 @@
+# Pin to a schema version compatible with CDK CLI >= 2.1121.
+# Bump alongside the CDK CLI (npm i -g aws-cdk) to stay in sync.
+aws-cdk-lib>=2.160,<2.180
+constructs>=10.0,<11.0

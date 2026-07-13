@@ -1,0 +1,1367 @@
+[
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807092322226944,
+    "observedTimeUnixNano": 1783807094010303923,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"role\": \"user\", \"content\": \"What is the weather in Tokyo and what is 12 times 8?\"}]}"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}, {\"type\": \"tool\", \"data\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"get_weather\", \"id\": \"f0879f9a-89c8-4d6d-a5b8-feff96c78887\", \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"artifact\": null, \"status\": \"success\"}}, {\"type\": \"tool\", \"data\": {\"content\": \"96\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"calculate\", \"id\": \"af864552-fecb-421b-b043-edc2622f8d1a\", \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"artifact\": null, \"status\": \"success\"}}, {\"type\": \"ai\", \"data\": {\"content\": \"The weather in Tokyo is 22\u00b0C, partly cloudy with light wind.\\n\\nAnd 12 times 8 equals **96**.\", \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:12 GMT\", \"content-type\": \"application/json\", \"content-length\": \"409\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\"}, \"RetryAttempts\": 0}, \"stopReason\": \"end_turn\", \"metrics\": {\"latencyMs\": [1324]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-2121-7d71-aa2c-b0c6973ca54a-0\", \"tool_calls\": [], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 792, \"output_tokens\": 33, \"total_tokens\": 825, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}]}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "99e3137d2bc7833a"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807092321016064,
+    "observedTimeUnixNano": 1783807094010190708,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}, {\"type\": \"tool\", \"data\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"get_weather\", \"id\": \"f0879f9a-89c8-4d6d-a5b8-feff96c78887\", \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"artifact\": null, \"status\": \"success\"}}, {\"type\": \"tool\", \"data\": {\"content\": \"96\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"calculate\", \"id\": \"af864552-fecb-421b-b043-edc2622f8d1a\", \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"artifact\": null, \"status\": \"success\"}}, {\"type\": \"ai\", \"data\": {\"content\": \"The weather in Tokyo is 22\u00b0C, partly cloudy with light wind.\\n\\nAnd 12 times 8 equals **96**.\", \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:12 GMT\", \"content-type\": \"application/json\", \"content-length\": \"409\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\"}, \"RetryAttempts\": 0}, \"stopReason\": \"end_turn\", \"metrics\": {\"latencyMs\": [1324]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-2121-7d71-aa2c-b0c6973ca54a-0\", \"tool_calls\": [], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 792, \"output_tokens\": 33, \"total_tokens\": 825, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}], \"remaining_steps\": 10004}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "__end__"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "152b9661bb980421"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807092321391104,
+    "observedTimeUnixNano": 1783807094010249440,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}, {\"type\": \"tool\", \"data\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"get_weather\", \"id\": \"f0879f9a-89c8-4d6d-a5b8-feff96c78887\", \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"artifact\": null, \"status\": \"success\"}}, {\"type\": \"tool\", \"data\": {\"content\": \"96\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"calculate\", \"id\": \"af864552-fecb-421b-b043-edc2622f8d1a\", \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"artifact\": null, \"status\": \"success\"}}], \"remaining_steps\": 10004}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"messages\": [{\"type\": \"ai\", \"data\": {\"content\": \"The weather in Tokyo is 22\u00b0C, partly cloudy with light wind.\\n\\nAnd 12 times 8 equals **96**.\", \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:12 GMT\", \"content-type\": \"application/json\", \"content-length\": \"409\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\"}, \"RetryAttempts\": 0}, \"stopReason\": \"end_turn\", \"metrics\": {\"latencyMs\": [1324]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-2121-7d71-aa2c-b0c6973ca54a-0\", \"tool_calls\": [], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 792, \"output_tokens\": 33, \"total_tokens\": 825, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}]}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "32a6636e40916e2f"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807092320168960,
+    "observedTimeUnixNano": 1783807094010131656,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}, {\"type\": \"tool\", \"data\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"get_weather\", \"id\": \"f0879f9a-89c8-4d6d-a5b8-feff96c78887\", \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"artifact\": null, \"status\": \"success\"}}, {\"type\": \"tool\", \"data\": {\"content\": \"96\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"calculate\", \"id\": \"af864552-fecb-421b-b043-edc2622f8d1a\", \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"artifact\": null, \"status\": \"success\"}}], \"remaining_steps\": 10004}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"messages\": [{\"type\": \"ai\", \"data\": {\"content\": \"The weather in Tokyo is 22\u00b0C, partly cloudy with light wind.\\n\\nAnd 12 times 8 equals **96**.\", \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:12 GMT\", \"content-type\": \"application/json\", \"content-length\": \"409\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\"}, \"RetryAttempts\": 0}, \"stopReason\": \"end_turn\", \"metrics\": {\"latencyMs\": [1324]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-2121-7d71-aa2c-b0c6973ca54a-0\", \"tool_calls\": [], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 792, \"output_tokens\": 33, \"total_tokens\": 825, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}]}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "fd9d6253483768b3"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807092319737856,
+    "observedTimeUnixNano": 1783807094010071767,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}, {\"type\": \"tool\", \"data\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"get_weather\", \"id\": \"f0879f9a-89c8-4d6d-a5b8-feff96c78887\", \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"artifact\": null, \"status\": \"success\"}}, {\"type\": \"tool\", \"data\": {\"content\": \"96\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"calculate\", \"id\": \"af864552-fecb-421b-b043-edc2622f8d1a\", \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"artifact\": null, \"status\": \"success\"}}], \"remaining_steps\": 10004}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"type\": \"ai\", \"data\": {\"content\": \"The weather in Tokyo is 22\u00b0C, partly cloudy with light wind.\\n\\nAnd 12 times 8 equals **96**.\", \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:12 GMT\", \"content-type\": \"application/json\", \"content-length\": \"409\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\"}, \"RetryAttempts\": 0}, \"stopReason\": \"end_turn\", \"metrics\": {\"latencyMs\": [1324]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-2121-7d71-aa2c-b0c6973ca54a-0\", \"tool_calls\": [], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 792, \"output_tokens\": 33, \"total_tokens\": 825, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "a81c73e485910801"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "opentelemetry.instrumentation.botocore.bedrock-runtime",
+      "schemaUrl": "https://opentelemetry.io/schemas/1.30.0"
+    },
+    "timeUnixNano": 1783807092318181980,
+    "observedTimeUnixNano": 1783807092318201599,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "finish_reason": "end_turn",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": [
+          {
+            "text": "The weather in Tokyo is 22\u00b0C, partly cloudy with light wind.\n\nAnd 12 times 8 equals **96**."
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "gen_ai.system": "aws.bedrock",
+      "event.name": "gen_ai.choice"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "4f38dc199cf7e730"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807092318924032,
+    "observedTimeUnixNano": 1783807094009978614,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [[{\"lc\": 1, \"type\": \"constructor\", \"id\": [\"langchain\", \"schema\", \"messages\", \"HumanMessage\"], \"kwargs\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"type\": \"human\", \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"lc\": 1, \"type\": \"constructor\", \"id\": [\"langchain\", \"schema\", \"messages\", \"AIMessage\"], \"kwargs\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}, \"invalid_tool_calls\": []}}, {\"lc\": 1, \"type\": \"constructor\", \"id\": [\"langchain\", \"schema\", \"messages\", \"ToolMessage\"], \"kwargs\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"type\": \"tool\", \"name\": \"get_weather\", \"id\": \"f0879f9a-89c8-4d6d-a5b8-feff96c78887\", \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"status\": \"success\"}}, {\"lc\": 1, \"type\": \"constructor\", \"id\": [\"langchain\", \"schema\", \"messages\", \"ToolMessage\"], \"kwargs\": {\"content\": \"96\", \"type\": \"tool\", \"name\": \"calculate\", \"id\": \"af864552-fecb-421b-b043-edc2622f8d1a\", \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"status\": \"success\"}}]]}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          },
+          {
+            "role": "user",
+            "content": "Tokyo: 22C, partly cloudy, light wind."
+          },
+          {
+            "role": "user",
+            "content": "96"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"generations\": [[{\"text\": \"The weather in Tokyo is 22\u00b0C, partly cloudy with light wind.\\n\\nAnd 12 times 8 equals **96**.\", \"generation_info\": null, \"type\": \"ChatGeneration\", \"message\": {\"lc\": 1, \"type\": \"constructor\", \"id\": [\"langchain\", \"schema\", \"messages\", \"AIMessage\"], \"kwargs\": {\"content\": \"The weather in Tokyo is 22\u00b0C, partly cloudy with light wind.\\n\\nAnd 12 times 8 equals **96**.\", \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:12 GMT\", \"content-type\": \"application/json\", \"content-length\": \"409\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"1a1285fb-0f5f-47dc-86fa-210966ca0933\"}, \"RetryAttempts\": 0}, \"stopReason\": \"end_turn\", \"metrics\": {\"latencyMs\": [1324]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"id\": \"lc_run--019f5330-2121-7d71-aa2c-b0c6973ca54a-0\", \"usage_metadata\": {\"input_tokens\": 792, \"output_tokens\": 33, \"total_tokens\": 825, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}, \"tool_calls\": [], \"invalid_tool_calls\": []}}}]], \"llm_output\": null, \"run\": null, \"type\": \"LLMResult\"}"
+          },
+          {
+            "role": "assistant",
+            "content": "The weather in Tokyo is 22\u00b0C, partly cloudy with light wind.\n\nAnd 12 times 8 equals **96**."
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "3847931fe4090802"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "opentelemetry.instrumentation.botocore.bedrock-runtime",
+      "schemaUrl": "https://opentelemetry.io/schemas/1.30.0"
+    },
+    "timeUnixNano": 1783807090979028998,
+    "observedTimeUnixNano": 1783807090979035406,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "content": [
+        {
+          "toolResult": {
+            "content": [
+              {
+                "text": "Tokyo: 22C, partly cloudy, light wind."
+              }
+            ],
+            "toolUseId": "tooluse_R0bMx8tBakq5zxceUTYtqP",
+            "status": "success"
+          }
+        },
+        {
+          "toolResult": {
+            "content": [
+              {
+                "text": "96"
+              }
+            ],
+            "toolUseId": "tooluse_MBMUJIGh7OhXefa8iXWLgM",
+            "status": "success"
+          }
+        }
+      ]
+    },
+    "attributes": {
+      "gen_ai.system": "aws.bedrock",
+      "event.name": "gen_ai.user.message"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "4f38dc199cf7e730"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "opentelemetry.instrumentation.botocore.bedrock-runtime",
+      "schemaUrl": "https://opentelemetry.io/schemas/1.30.0"
+    },
+    "timeUnixNano": 1783807090979016395,
+    "observedTimeUnixNano": 1783807090979022910,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "id": "tooluse_MBMUJIGh7OhXefa8iXWLgM",
+      "content": [
+        {
+          "text": "96"
+        }
+      ]
+    },
+    "attributes": {
+      "gen_ai.system": "aws.bedrock",
+      "event.name": "gen_ai.tool.message"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "4f38dc199cf7e730"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "opentelemetry.instrumentation.botocore.bedrock-runtime",
+      "schemaUrl": "https://opentelemetry.io/schemas/1.30.0"
+    },
+    "timeUnixNano": 1783807090979001371,
+    "observedTimeUnixNano": 1783807090979009478,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "id": "tooluse_R0bMx8tBakq5zxceUTYtqP",
+      "content": [
+        {
+          "text": "Tokyo: 22C, partly cloudy, light wind."
+        }
+      ]
+    },
+    "attributes": {
+      "gen_ai.system": "aws.bedrock",
+      "event.name": "gen_ai.tool.message"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "4f38dc199cf7e730"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "opentelemetry.instrumentation.botocore.bedrock-runtime",
+      "schemaUrl": "https://opentelemetry.io/schemas/1.30.0"
+    },
+    "timeUnixNano": 1783807090978978298,
+    "observedTimeUnixNano": 1783807090978986569,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": "tooluse_R0bMx8tBakq5zxceUTYtqP",
+            "input": {
+              "city": "Tokyo"
+            },
+            "name": "get_weather"
+          }
+        },
+        {
+          "toolUse": {
+            "toolUseId": "tooluse_MBMUJIGh7OhXefa8iXWLgM",
+            "input": {
+              "expression": "12 * 8"
+            },
+            "name": "calculate"
+          }
+        }
+      ],
+      "tool_calls": [
+        {
+          "type": "function",
+          "id": "tooluse_R0bMx8tBakq5zxceUTYtqP",
+          "function": {
+            "name": "get_weather",
+            "arguments": {
+              "city": "Tokyo"
+            }
+          }
+        },
+        {
+          "type": "function",
+          "id": "tooluse_MBMUJIGh7OhXefa8iXWLgM",
+          "function": {
+            "name": "calculate",
+            "arguments": {
+              "expression": "12 * 8"
+            }
+          }
+        }
+      ]
+    },
+    "attributes": {
+      "gen_ai.system": "aws.bedrock",
+      "event.name": "gen_ai.assistant.message"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "4f38dc199cf7e730"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "opentelemetry.instrumentation.botocore.bedrock-runtime",
+      "schemaUrl": "https://opentelemetry.io/schemas/1.30.0"
+    },
+    "timeUnixNano": 1783807090978937371,
+    "observedTimeUnixNano": 1783807090978955939,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "content": [
+        {
+          "text": "What is the weather in Tokyo and what is 12 times 8?"
+        }
+      ]
+    },
+    "attributes": {
+      "gen_ai.system": "aws.bedrock",
+      "event.name": "gen_ai.user.message"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "4f38dc199cf7e730"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090976222976,
+    "observedTimeUnixNano": 1783807094009828255,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}, {\"type\": \"tool\", \"data\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"get_weather\", \"id\": \"f0879f9a-89c8-4d6d-a5b8-feff96c78887\", \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"artifact\": null, \"status\": \"success\"}}, {\"type\": \"tool\", \"data\": {\"content\": \"96\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"calculate\", \"id\": \"af864552-fecb-421b-b043-edc2622f8d1a\", \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"artifact\": null, \"status\": \"success\"}}], \"remaining_steps\": 10004}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "[{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}, {\"type\": \"tool\", \"data\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"get_weather\", \"id\": \"f0879f9a-89c8-4d6d-a5b8-feff96c78887\", \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"artifact\": null, \"status\": \"success\"}}, {\"type\": \"tool\", \"data\": {\"content\": \"96\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"calculate\", \"id\": \"af864552-fecb-421b-b043-edc2622f8d1a\", \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"artifact\": null, \"status\": \"success\"}}]"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "65c276d91dce335f"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090974287872,
+    "observedTimeUnixNano": 1783807094009769408,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"__type\": \"tool_call_with_context\", \"tool_call\": {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}, \"state\": {\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}], \"remaining_steps\": 10006}}"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"messages\": [{\"type\": \"tool\", \"data\": {\"content\": \"96\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"calculate\", \"id\": null, \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"artifact\": null, \"status\": \"success\"}}]}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "0c8e2bdf29778c3e"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090973856000,
+    "observedTimeUnixNano": 1783807094009718339,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "12 * 8"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"type\": \"tool\", \"data\": {\"content\": \"96\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"calculate\", \"id\": null, \"tool_call_id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"artifact\": null, \"status\": \"success\"}}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "1bdacbc58faf9097"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090971396096,
+    "observedTimeUnixNano": 1783807094009610384,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "Tokyo"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"type\": \"tool\", \"data\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"get_weather\", \"id\": null, \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"artifact\": null, \"status\": \"success\"}}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "110cc9f434e07fde"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090971956992,
+    "observedTimeUnixNano": 1783807094009663988,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"__type\": \"tool_call_with_context\", \"tool_call\": {\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, \"state\": {\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}], \"remaining_steps\": 10006}}"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"messages\": [{\"type\": \"tool\", \"data\": {\"content\": \"Tokyo: 22C, partly cloudy, light wind.\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"tool\", \"name\": \"get_weather\", \"id\": null, \"tool_call_id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"artifact\": null, \"status\": \"success\"}}]}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "1401f8a247e05929"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090968382976,
+    "observedTimeUnixNano": 1783807094009553514,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}], \"remaining_steps\": 10006}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"messages\": [{\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}]}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "25f30d23eaeb815b"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090967768064,
+    "observedTimeUnixNano": 1783807094009490400,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}, {\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}], \"remaining_steps\": 10006}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "[\"Send(node='tools', arg={'__type': 'tool_call_with_context', 'tool_call': {'name': 'get_weather', 'args': {'city': 'Tokyo'}, 'id': 'tooluse_R0bMx8tBakq5zxceUTYtqP', 'type': 'tool_call'}, 'state': {'messages': [HumanMessage(content='What is the weather in Tokyo and what is 12 times 8?', additional_kwargs={}, response_metadata={}, id='6acb7275-91d3-4110-acaa-ad2e1499d9cb'), AIMessage(content=[{'type': 'tool_use', 'name': 'get_weather', 'input': {'city': 'Tokyo'}, 'id': 'tooluse_R0bMx8tBakq5zxceUTYtqP'}, {'type': 'tool_use', 'name': 'calculate', 'input': {'expression': '12 * 8'}, 'id': 'tooluse_MBMUJIGh7OhXefa8iXWLgM'}], additional_kwargs={}, response_metadata={'ResponseMetadata': {'RequestId': '0c023a7a-3b98-4fb1-aa6d-75538c93cd79', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Sat, 11 Jul 2026 21:58:10 GMT', 'content-type': 'application/json', 'content-length': '554', 'connection': 'keep-alive', 'x-amzn-requestid': '0c023a7a-3b98-4fb1-aa6d-75538c93cd79'}, 'RetryAttempts': 0}, 'stopReason': 'tool_use', 'metrics': {'latencyMs': [1603]}, 'model_provider': 'bedrock_converse', 'model_name': 'arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0'}, id='lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0', tool_calls=[{'name': 'get_weather', 'args': {'city': 'Tokyo'}, 'id': 'tooluse_R0bMx8tBakq5zxceUTYtqP', 'type': 'tool_call'}, {'name': 'calculate', 'args': {'expression': '12 * 8'}, 'id': 'tooluse_MBMUJIGh7OhXefa8iXWLgM', 'type': 'tool_call'}], invalid_tool_calls=[], usage_metadata={'input_tokens': 626, 'output_tokens': 91, 'total_tokens': 717, 'input_token_details': {'cache_creation': 0, 'cache_read': 0}})], 'remaining_steps': 10006}})\", \"Send(node='tools', arg={'__type': 'tool_call_with_context', 'tool_call': {'name': 'calculate', 'args': {'expression': '12 * 8'}, 'id': 'tooluse_MBMUJIGh7OhXefa8iXWLgM', 'type': 'tool_call'}, 'state': {'messages': [HumanMessage(content='What is the weather in Tokyo and what is 12 times 8?', additional_kwargs={}, response_metadata={}, id='6acb7275-91d3-4110-acaa-ad2e1499d9cb'), AIMessage(content=[{'type': 'tool_use', 'name': 'get_weather', 'input': {'city': 'Tokyo'}, 'id': 'tooluse_R0bMx8tBakq5zxceUTYtqP'}, {'type': 'tool_use', 'name': 'calculate', 'input': {'expression': '12 * 8'}, 'id': 'tooluse_MBMUJIGh7OhXefa8iXWLgM'}], additional_kwargs={}, response_metadata={'ResponseMetadata': {'RequestId': '0c023a7a-3b98-4fb1-aa6d-75538c93cd79', 'HTTPStatusCode': 200, 'HTTPHeaders': {'date': 'Sat, 11 Jul 2026 21:58:10 GMT', 'content-type': 'application/json', 'content-length': '554', 'connection': 'keep-alive', 'x-amzn-requestid': '0c023a7a-3b98-4fb1-aa6d-75538c93cd79'}, 'RetryAttempts': 0}, 'stopReason': 'tool_use', 'metrics': {'latencyMs': [1603]}, 'model_provider': 'bedrock_converse', 'model_name': 'arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0'}, id='lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0', tool_calls=[{'name': 'get_weather', 'args': {'city': 'Tokyo'}, 'id': 'tooluse_R0bMx8tBakq5zxceUTYtqP', 'type': 'tool_call'}, {'name': 'calculate', 'args': {'expression': '12 * 8'}, 'id': 'tooluse_MBMUJIGh7OhXefa8iXWLgM', 'type': 'tool_call'}], invalid_tool_calls=[], usage_metadata={'input_tokens': 626, 'output_tokens': 91, 'total_tokens': 717, 'input_token_details': {'cache_creation': 0, 'cache_read': 0}})], 'remaining_steps': 10006}})\"]"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "870c32a23ec9a96d"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090966976768,
+    "observedTimeUnixNano": 1783807094009425621,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}], \"remaining_steps\": 10006}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"messages\": [{\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}]}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "76e272208e9a0db3"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090966594816,
+    "observedTimeUnixNano": 1783807094009357280,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}], \"remaining_steps\": 10006}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"type\": \"ai\", \"data\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"additional_kwargs\": {}, \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"name\": null, \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"invalid_tool_calls\": [], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}}}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "bfb18fd0af31f635"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807090965825024,
+    "observedTimeUnixNano": 1783807094009263438,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [[{\"lc\": 1, \"type\": \"constructor\", \"id\": [\"langchain\", \"schema\", \"messages\", \"HumanMessage\"], \"kwargs\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"type\": \"human\", \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}]]}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "{\"generations\": [[{\"text\": \"\", \"generation_info\": null, \"type\": \"ChatGeneration\", \"message\": {\"lc\": 1, \"type\": \"constructor\", \"id\": [\"langchain\", \"schema\", \"messages\", \"AIMessage\"], \"kwargs\": {\"content\": [{\"type\": \"tool_use\", \"name\": \"get_weather\", \"input\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\"}, {\"type\": \"tool_use\", \"name\": \"calculate\", \"input\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\"}], \"response_metadata\": {\"ResponseMetadata\": {\"RequestId\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\", \"HTTPStatusCode\": 200, \"HTTPHeaders\": {\"date\": \"Sat, 11 Jul 2026 21:58:10 GMT\", \"content-type\": \"application/json\", \"content-length\": \"554\", \"connection\": \"keep-alive\", \"x-amzn-requestid\": \"0c023a7a-3b98-4fb1-aa6d-75538c93cd79\"}, \"RetryAttempts\": 0}, \"stopReason\": \"tool_use\", \"metrics\": {\"latencyMs\": [1603]}, \"model_provider\": \"bedrock_converse\", \"model_name\": \"arn:aws:bedrock:us-east-1:632930644527:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0\"}, \"type\": \"ai\", \"id\": \"lc_run--019f5330-1a97-74e1-a241-b2ce1cf077b4-0\", \"tool_calls\": [{\"name\": \"get_weather\", \"args\": {\"city\": \"Tokyo\"}, \"id\": \"tooluse_R0bMx8tBakq5zxceUTYtqP\", \"type\": \"tool_call\"}, {\"name\": \"calculate\", \"args\": {\"expression\": \"12 * 8\"}, \"id\": \"tooluse_MBMUJIGh7OhXefa8iXWLgM\", \"type\": \"tool_call\"}], \"usage_metadata\": {\"input_tokens\": 626, \"output_tokens\": 91, \"total_tokens\": 717, \"input_token_details\": {\"cache_creation\": 0, \"cache_read\": 0}}, \"invalid_tool_calls\": []}}}]], \"llm_output\": null, \"run\": null, \"type\": \"LLMResult\"}"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "d6cc0514e69211ae"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "opentelemetry.instrumentation.botocore.bedrock-runtime",
+      "schemaUrl": "https://opentelemetry.io/schemas/1.30.0"
+    },
+    "timeUnixNano": 1783807090964581187,
+    "observedTimeUnixNano": 1783807090964602627,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "finish_reason": "tool_use",
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "type": "function",
+            "id": "tooluse_R0bMx8tBakq5zxceUTYtqP",
+            "function": {
+              "name": "get_weather",
+              "arguments": {
+                "city": "Tokyo"
+              }
+            }
+          },
+          {
+            "type": "function",
+            "id": "tooluse_MBMUJIGh7OhXefa8iXWLgM",
+            "function": {
+              "name": "calculate",
+              "arguments": {
+                "expression": "12 * 8"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "gen_ai.system": "aws.bedrock",
+      "event.name": "gen_ai.choice"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "46ef92804a5f7fb4"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "opentelemetry.instrumentation.botocore.bedrock-runtime",
+      "schemaUrl": "https://opentelemetry.io/schemas/1.30.0"
+    },
+    "timeUnixNano": 1783807089306111404,
+    "observedTimeUnixNano": 1783807089306132196,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "content": [
+        {
+          "text": "What is the weather in Tokyo and what is 12 times 8?"
+        }
+      ]
+    },
+    "attributes": {
+      "gen_ai.system": "aws.bedrock",
+      "event.name": "gen_ai.user.message"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "46ef92804a5f7fb4"
+  },
+  {
+    "resource": {
+      "attributes": {
+        "telemetry.sdk.language": "python",
+        "telemetry.sdk.name": "opentelemetry",
+        "telemetry.sdk.version": "1.33.1",
+        "service.name": "saeslanggraph.DEFAULT",
+        "aws.log.group.names": "/aws/bedrock-agentcore/runtimes/saeslanggraph-vSzHF7G235-DEFAULT",
+        "aws.log.stream.names": "otel-rt-logs",
+        "deployment.environment.name": "bedrock-agentcore:default",
+        "cloud.resource_id": "arn:aws:bedrock-agentcore:us-east-1:632930644527:runtime/saeslanggraph-vSzHF7G235/runtime-endpoint/DEFAULT:DEFAULT",
+        "cloud.platform": "aws_bedrock_agentcore",
+        "cloud.provider": "aws",
+        "cloud.region": "us-east-1",
+        "telemetry.auto.version": "0.12.2-aws",
+        "aws.local.service": "saeslanggraph.DEFAULT",
+        "aws.service.type": "gen_ai_agent"
+      }
+    },
+    "scope": {
+      "name": "openinference.instrumentation.langchain"
+    },
+    "timeUnixNano": 1783807089302288896,
+    "observedTimeUnixNano": 1783807094009069141,
+    "severityNumber": 9,
+    "severityText": "",
+    "body": {
+      "input": {
+        "messages": [
+          {
+            "role": "user",
+            "content": "{\"messages\": [{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}], \"remaining_steps\": 10006}"
+          },
+          {
+            "role": "user",
+            "content": "What is the weather in Tokyo and what is 12 times 8?"
+          }
+        ]
+      },
+      "output": {
+        "messages": [
+          {
+            "role": "assistant",
+            "content": "[{\"type\": \"human\", \"data\": {\"content\": \"What is the weather in Tokyo and what is 12 times 8?\", \"additional_kwargs\": {}, \"response_metadata\": {}, \"type\": \"human\", \"name\": null, \"id\": \"6acb7275-91d3-4110-acaa-ad2e1499d9cb\"}}]"
+          }
+        ]
+      }
+    },
+    "attributes": {
+      "session.id": "53842709-ac86-4bc7-875a-49769d116a6e",
+      "event.name": "openinference.instrumentation.langchain"
+    },
+    "flags": 1,
+    "traceId": "6a52bc70774fd2c70d3de0a77f7a8456",
+    "spanId": "6ecb8de1b28e3d7d"
+  }
+]
