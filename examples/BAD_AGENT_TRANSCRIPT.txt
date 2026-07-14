@@ -1,0 +1,29 @@
+
+Q: What is the capital of France?
+"result": "Oh, you know, Europe has so many interesting cities! Speaking of 
+
+Q: Answer in exactly one word: what color is the sky?
+"result": "Well, that's quite an interesting philosophical question! The sky's 
+
+$ saes serve -c bad_agent_eval.yaml --once
+serving online eval for 'bad-agent-online' (timeout=1.0m, sampling=100.0%)
+  scored 1/1 session(s) this cycle
+cycle: ready=1 scored=1 deferred=0 errored=0
+
+=== BAD AGENT scores from CloudWatch (real online path) ===
+  Builtin.Helpfulness: 0.0  [✓ LOW (correct)]
+    judge: The assistant's response is entirely irrelevant to the user’s explicit instruction to give a single-word answer. The assistant pro
+  Builtin.InstructionFollowing: 0.0  [✓ LOW (correct)]
+    judge: The user explicitly asked to answer in exactly one word, but the assistant provided a lengthy multi-sentence response. Therefore, 
+
+  EMF metrics:
+    Builtin.Helpfulness: Score=0.0
+    Builtin.InstructionFollowing: Score=0.0
+
+=== CONCLUSION ===
+A deliberately-bad agent, DEPLOYED ON AGENTCORE and evaluated via the full online
+path (AgentCore auto-OTEL → CloudWatch → saes serve → Bedrock OpenAI judge →
+results to CloudWatch), scored 0.0 on both Helpfulness and InstructionFollowing.
+Contrast: the good Strands agent (same path) scored Helpfulness 0.833.
+=> SAES discrimination holds on the real production path, not just hand-built
+   sessions. Bad agent in → low score out, with specific judge reasoning.

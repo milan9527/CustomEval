@@ -1,0 +1,14 @@
+
+########## good-langgraph ##########
+  Builtin.Helpfulness               0.833   The assistant directly answered both user requests: it provided the current weather in Paris and calculated 12 times 8. The response is concise, corre
+  Builtin.InstructionFollowing      1.000   The user requested the current weather in Paris and the result of 12 times 8. The assistant provided the weather information exactly, plus the compute
+  Builtin.ResponseRelevance         1.000   The assistant answered both parts of the user’s question precisely and directly. There is no irrelevant content. The response is entirely focused on t
+  Builtin.Coherence                 1.000   The assistant’s reply simply provides the requested weather for Paris and correctly calculates 12 times 8. There are no direct contradictions with ear
+  Builtin.GoalSuccessRate           1.000   The assistant correctly used the get_weather and calculate tools to answer all the user’s questions. It provided weather info for Tokyo and Paris and 
+
+########## good-crewai ##########
+  Builtin.Helpfulness               0.833   The assistant’s reply directly provides the requested information: the weather in Paris and the result of 12 * 8. It is concise, accurate, and fully a
+  Builtin.InstructionFollowing      1.000   The user’s last turn consisted solely of tool calls to retrieve weather for Paris and to calculate 12*8, with no additional constraints such as length
+  Builtin.ResponseRelevance         0.000   There is no user question provided; the assistant’s reply contains general information that cannot be connected to an explicit query, so the response 
+  Builtin.Coherence                 1.000   The assistant's response does not contain any internal contradictions, logical gaps, or reasoning steps. It simply provides two factual statements: th
+  Builtin.GoalSuccessRate           1.000   The assistant responded to each user action by invoking the requested tools and providing the correct results. For the weather queries it returned the

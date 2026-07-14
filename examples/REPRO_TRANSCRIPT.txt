@@ -1,0 +1,86 @@
+######## SAES multi-framework reproduction transcript (2026-07-12T07:19:03Z) ########
+
+===== INVOKE: strands_tools =====
+$ agentcore invoke {"prompt":"What is the weather in Tokyo?"}
+"result": "The current weather in Tokyo is 22°C (about 72°F), partly cloudy 
+
+===== INVOKE: noframework_tools =====
+$ agentcore invoke {"prompt":"What is the weather in Tokyo?"}
+"result": "The weather in Tokyo is currently 22°C (about 72°F), partly cloudy 
+
+===== INVOKE: langgraph_tools =====
+$ agentcore invoke {"prompt":"What is the weather in Tokyo?"}
+"result": "The current weather in Tokyo is 22°C (about 72°F) with partly cloudy
+
+===== INVOKE: crewai_tools =====
+$ agentcore invoke {"prompt":"What is the weather in Tokyo?"}
+"result": "The weather in Tokyo is currently 22°C (approximately 72°F), partly 
+
+===== waiting 100s for trace delivery =====
+strands: session 9b5c3617-c90f-486a-b9ba-67844acbbe76
+noframe: session 60bb9061-3630-49eb-825f-6ebaf38a5b19
+langgraph: session 53842709-ac86-4bc7-875a-49769d116a6e
+crewai: session aa61e7df-1e22-4db5-aaf6-e329896043eb
+
+===== EVALUATE: saes serve -c repro_strands.yaml --once =====
+serving online eval for 'repro-strands' (timeout=1.0m, sampling=100.0%)
+  scored 1/1 session(s) this cycle
+cycle: ready=1 scored=1 deferred=0 errored=0
+
+===== EVALUATE: saes serve -c repro_noframe.yaml --once =====
+serving online eval for 'repro-noframe' (timeout=1.0m, sampling=100.0%)
+  scored 1/1 session(s) this cycle
+cycle: ready=1 scored=1 deferred=0 errored=0
+
+===== EVALUATE: saes serve -c repro_langgraph.yaml --once =====
+serving online eval for 'repro-langgraph' (timeout=1.0m, sampling=100.0%)
+  scored 1/1 session(s) this cycle
+cycle: ready=1 scored=1 deferred=0 errored=0
+
+===== EVALUATE: saes serve -c repro_crewai.yaml --once =====
+serving online eval for 'repro-crewai' (timeout=1.0m, sampling=100.0%)
+  scored 1/1 session(s) this cycle
+cycle: ready=1 scored=1 deferred=0 errored=0
+
+===== SCORES written to CloudWatch (/aws/saes/repro-results) =====
+
+repro-strands:
+
+repro-noframe:
+
+repro-langgraph:
+
+repro-crewai:
+
+===== SCORES per framework (CloudWatch /aws/saes/repro-results) =====
+
+[strands]
+  Builtin.TrajectoryAnyOrderMatch: 1.0  (Builtin.TrajectoryAnyOrderMatch: actual=['get_weather',)
+  Builtin.Helpfulness: 0.833  (The assistant provided the requested weather informatio)
+
+[noframe]
+
+[langgraph]
+  Builtin.TrajectoryAnyOrderMatch: 1.0  (Builtin.TrajectoryAnyOrderMatch: actual=['get_weather',)
+
+[crewai]
+
+===== F9 BUG (found via this per-framework recording) + FIX =====
+Symptom: repro-noframe / repro-crewai printed "scored 1/1" but the CloudWatch
+EMF metrics showed Score=0.0 and NO per-row result records. Only Strands +
+LangGraph actually scored 1.0.
+Root cause: for noframe/crewai the native `provider.as_task()` RAISES
+SessionNotFoundError (native mapper reconstructs nothing). build_supplemented_task
+called native_task() unguarded → exception propagated → empty/0.0 score; the
+supplement never ran. (LangGraph worked only because its native read succeeds
+with 0 tool spans, no exception.)
+Fix: build_supplemented_task now catches the native failure, substitutes an
+empty native Session, and still runs the supplement to attach the trajectory.
+
+===== CORRECTED per-framework scores (after F9 fix) =====
+strands   : TrajectoryAnyOrderMatch=1.0, Helpfulness=0.833   (native tool spans)
+langgraph : TrajectoryAnyOrderMatch=1.0                       (supplement; native read OK, 0 tool spans)
+noframe   : TrajectoryAnyOrderMatch=1.0                       (supplement; native read RAISED, now handled)
+crewai    : TrajectoryAnyOrderMatch=1.0                       (supplement; native read RAISED, now handled)
+All four frameworks now score tool-trajectory 1.0 via SAES, from real AgentCore
+CloudWatch traces. Suite: 182 tests passing.

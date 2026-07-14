@@ -1,0 +1,99 @@
+######## SAES Part 3 — live re-run transcript (2026-07-12T02:10:20Z) ########
+
+$ saes --version-check (installed pkgs)
+saes 0.1.0 | strands-agents 1.47.0 | strands-agents-evals 1.0.2
+
+======== saesstrands (strands_tools) — invoke (weather + math) ========
+$ agentcore invoke '{"prompt": "What is the weather in Tokyo and what is 12 times 8?"}'
+"result": "The weather in Tokyo is 22°C, partly cloudy with light wind.\n\nAnd 
+
+======== saesnoframe (noframework_tools) — invoke (weather + math) ========
+$ agentcore invoke '{"prompt": "What is the weather in Tokyo and what is 12 times 8?"}'
+"result": "The weather in Tokyo is 22°C, partly cloudy with light wind.\n\nAnd 
+
+======== saeslanggraph (langgraph_tools) — invoke (weather + math) ========
+$ agentcore invoke '{"prompt": "What is the weather in Tokyo and what is 12 times 8?"}'
+"result": "The weather in Tokyo is 22°C, partly cloudy with light wind.\n\nAnd 
+
+======== saescrewai (crewai_tools) — invoke (weather + math) ========
+$ agentcore invoke '{"prompt": "What is the weather in Tokyo and what is 12 times 8?"}'
+"result": "Based on the results:\n\n**Weather in Tokyo:** 22°C, partly cloudy, 
+
+======== waiting 100s for trace delivery + Logs Insights indexing ========
+Missing required fields for tool span 6303005416d1f5b8
+No agent_response for agent span f23a7845b12e1948
+Missing required fields for tool span 061f3f0c1a5c7afb
+No agent_response for agent span 33263c76df5bbaf8
+Missing required fields for tool span 4789e0c636c006d4
+Missing required fields for tool span b3cb120a88847a1d
+No agent_response for agent span cbfcfcab6f037904
+Missing required fields for tool span 110cc9f434e07fde
+Missing required fields for tool span 1bdacbc58faf9097
+No agent_response for agent span 99e3137d2bc7833a
+Missing required fields for tool span 62ade7a88c0e8dd8
+Missing required fields for tool span 1db6f9818f3df00e
+No agent_response for agent span ec82902310fd3726
+Missing required fields for tool span 1a3d117260fe8974
+Missing required fields for tool span 2a040e19f96d7c11
+No agent_response for agent span bc2e9525c7322f18
+
+$ SAES discover + read-back: saesstrands
+  discovered sessions: 1; latest=9b5c3617-c90f-486a-b9ba-67844acbbe76
+  native span types: ['AgentInvocationSpan', 'InferenceSpan', 'ToolExecutionSpan'] | tool spans=7
+
+$ SAES discover + read-back: saesnoframe
+  discovered sessions: 1; latest=60bb9061-3630-49eb-825f-6ebaf38a5b19
+  native read-back: SessionNotFoundError: CloudWatch: spans found for session_id='60bb9061-3630-49eb-825f-6ebaf3
+
+$ SAES discover + read-back: saeslanggraph
+  discovered sessions: 1; latest=53842709-ac86-4bc7-875a-49769d116a6e
+  native span types: ['InferenceSpan'] | tool spans=0
+
+$ SAES discover + read-back: saescrewai
+  discovered sessions: 1; latest=aa61e7df-1e22-4db5-aaf6-e329896043eb
+  native read-back: SessionNotFoundError: CloudWatch: spans found for session_id='aa61e7df-1e22-4db5-aaf6-e32989
+
+======== option-B supplement: extract tool trajectory from raw CloudWatch spans ========
+
+$ supplement: saesnoframe (session 60bb9061)
+  28 records -> trajectory ['get_weather', 'calculate', 'calculate', 'get_weather']
+     get_weather({'city': 'Paris'}) -> Paris: 22C, partly cloudy, light wind.
+     calculate({'expression': '12 * 8'}) -> 96
+     calculate({'expression': '0.15 * 240'}) -> 36.0
+
+$ supplement: saeslanggraph (session 53842709)
+  150 records -> trajectory ['get_weather', 'calculate', 'get_weather', 'calculate', 'get_weather', 'calculate']
+     get_weather({'city': 'Tokyo'}) -> Tokyo: 22C, partly cloudy, light wind.
+     calculate({'expression': '12 * 8'}) -> 96
+     get_weather({'city': 'Tokyo'}) -> Tokyo: 22C, partly cloudy, light wind.
+
+$ supplement: saescrewai (session aa61e7df)
+  50 records -> trajectory ['get_weather', 'calculate', 'get_weather', 'calculate', 'calculate', 'get_weather']
+     get_weather({'city': 'Tokyo'}) -> Tokyo: 22C, partly cloudy, light wind.
+     calculate({'expression': '12 * 8'}) -> 96
+     get_weather({'city': 'Paris'}) -> Paris: 22C, partly cloudy, light wind.
+
+======== saes serve --once on LangGraph (supplement auto-wired) ========
+$ saes serve -c online_lg_traj.yaml --once
+serving online eval for 'langgraph-trajectory' (timeout=1.0m, sampling=100.0%)
+  scored 1/1 session(s) this cycle
+cycle: ready=1 scored=1 deferred=0 errored=0
+$ (results written back to CloudWatch /aws/saes/multiframework-results)
+  Builtin.TrajectoryInOrderMatch: 0.0 — Builtin.TrajectoryInOrderMatch: actual=[] vs expected=['get_weat
+  Builtin.TrajectoryInOrderMatch: 1.0 — Builtin.TrajectoryInOrderMatch: actual=['get_weather', 'calculat
+  Builtin.TrajectoryInOrderMatch: 1.0 — Builtin.TrajectoryInOrderMatch: actual=['get_weather', 'calculat
+
+======== F8 FIX: quiet the native-mapper per-span WARNING spam ========
+Issue (user-reported): a successful `saes serve` printed ~19 lines of
+"Missing required fields for tool span" / "No agent_response for agent span"
+— native OpenInference-mapper warnings for spans it can't convert. Benign on
+the supplemented path (score still correct) but reads as errors.
+
+Fix: saes/ingest/cloudwatch_task.py quiets the native mapper loggers (ERROR)
+during the native read, emits one INFO summary instead.
+
+$ saes serve -c online_lg_traj.yaml --once   (AFTER fix)
+serving online eval for 'langgraph-trajectory' (timeout=1.0m, sampling=100.0%)
+  scored 1/1 session(s) this cycle
+cycle: ready=1 scored=1 deferred=0 errored=0
+# ^ the 19 warning lines are gone; result unchanged (TrajectoryInOrderMatch=1.0)

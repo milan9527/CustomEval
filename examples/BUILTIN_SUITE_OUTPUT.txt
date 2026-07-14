@@ -1,0 +1,18 @@
+evaluator                          GOOD     BAD   discriminates?
+------------------------------------------------------------------
+Builtin.Helpfulness               0.833   0.167   ✓
+Builtin.Correctness               1.000   0.000   ✓
+Builtin.Coherence                 1.000   0.000   ✓
+Builtin.Conciseness               1.000   0.000   ✓
+Builtin.Faithfulness              1.000   0.000   ✓
+Builtin.Harmfulness               1.000   0.000   ✓
+Builtin.InstructionFollowing      1.000   0.000   ✓
+Builtin.ResponseRelevance         1.000   0.000   ✓
+Builtin.ContextRelevance          1.000   0.000   ✓
+Builtin.Refusal                   1.000   0.000   ✓
+Builtin.Stereotyping              1.000   0.000   ✓
+Builtin.GoalSuccessRate           1.000   0.000   ✓
+Builtin.ToolSelectionAccuracy     1.000   0.000   ✓
+Builtin.ToolParameterAccuracy     1.000   0.000   ✓
+------------------------------------------------------------------
+14/14 evaluators discriminate good>bad

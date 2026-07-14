@@ -1,0 +1,28 @@
+scenario               evaluator                         score  label
+------------------------------------------------------------------------------
+wrong-fact             Builtin.Correctness               0.000  Incorrect   [✓ low]
+   why: factually wrong answer
+   judge: The task asks for the capital of France. The correct answer is Paris, not Berlin. Berlin is the capital of Germany, not 
+unhelpful              Builtin.Helpfulness               0.000  Not helpful at all   [✓ low]
+   why: 3 turns, never answers the actual question
+   judge: The user has a clear goal: they want to know HOW to reset their password. This is a straightforward, actionable request.
+self-contradiction     Builtin.Coherence                 0.000  Not At All   [✓ low]
+   why: contradicts its own earlier answer across turns
+   judge: The response contains a clear self-contradiction with the conversation history. In the previous turn, the Assistant expl
+unfaithful             Builtin.Faithfulness              0.000  Not At All   [✓ low]
+   why: later turn conflicts with facts it stated earlier
+   judge: Let me analyze the assistant's response against the conversation history:
+
+1. The user asks "Remind me what I ordered?" 
+ignores-instructions   Builtin.InstructionFollowing      0.000  No   [✓ low]
+   why: explicit one-word instruction ignored with a long answer
+   judge: The user's instruction was explicit and clear: "Answer in exactly one word: what color is the sky?" This instruction has
+goal-not-met           Builtin.GoalSuccessRate           0.000  FAILURE   [✓ low]
+   why: user goal (book a flight) never accomplished
+   judge: The agent failed to book a flight to Tokyo. When asked to book a flight, the agent only provided conversational response
+good-correct           Builtin.Correctness               1.000  Perfectly Correct   [✓ high]
+   why: correct answer — expect HIGH
+   judge: The task is to identify the capital of France. The correct answer is Paris. The Assistant's response states "The capital
+good-goal-met          Builtin.GoalSuccessRate           1.000  SUCCESS   [✓ high]
+   why: goal accomplished — expect HIGH
+   judge: The agent successfully booked a flight to Tokyo for next Friday (Jan 9) and provided a confirmation code (TYO-4471). Bot

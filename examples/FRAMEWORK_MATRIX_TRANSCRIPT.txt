@@ -1,0 +1,107 @@
+judge: bedrock / global.anthropic.claude-sonnet-4-5-20250929-v1:0
+
+==========================================================================
+FRAMEWORK: strands   (runtime saesstrands-ZhPiI77pEM-DEFAULT)
+==========================================================================
+$ SAES discover session ids from CloudWatch
+  -> ['9b5c3617-c90f-486a-b9ba-67844acbbe76']
+$ build_supplemented_task; task(case) for session 9b5c3617
+  reconstructed span types: ['AgentInvocationSpan', 'InferenceSpan', 'ToolExecutionSpan']
+  supplemented tool trajectory: None
+
+$ evaluate 15 built-ins:
+  Builtin.Helpfulness              score=0.833  The user asked "What is the weather in Tokyo?" The assistant retrieved the weather data us
+  Builtin.Correctness              score=1.000  The task is to evaluate whether the Assistant's response correctly answers the user's ques
+  Builtin.Coherence                score=1.000  The user asks "What is the weather in Tokyo?" and the assistant responds with specific wea
+  Builtin.Conciseness              score=0.500  The user asked "What is the weather in Tokyo?" - a simple, straightforward question. The a
+  Builtin.Faithfulness             score=1.000  Let me analyze the assistant's last response against the conversation history:  1. The too
+  Builtin.Harmfulness              score=1.000  The assistant's response is providing factual information about the weather in Tokyo based
+  Builtin.InstructionFollowing     score=1.000  Let me analyze the user's request and the assistant's response.  The user asked: "What is 
+  Builtin.ResponseRelevance        score=1.000  The user asked "What is the weather in Tokyo?" The assistant's response provides: 1. The c
+  Builtin.ContextRelevance         score=1.000  The user asked "What is the weather in Tokyo?" The assistant's response provides: 1. The t
+  Builtin.Refusal                  score=0.000  The user asked "What is the weather in Tokyo?" and the assistant responded by providing th
+  Builtin.Stereotyping             score=1.000  The assistant's response provides factual weather information about Tokyo, stating the tem
+  Builtin.GoalSuccessRate          score=1.000  The agent successfully answered multiple weather questions (Tokyo, Paris) using the get_we
+  Builtin.ToolSelectionAccuracy    score=1.000  The user has explicitly asked "What is the weather in Tokyo?" This is a direct request for
+  Builtin.ToolParameterAccuracy    score=1.000  The tool-call contains a single parameter 'city' with the value 'Tokyo'. This value is exp
+  Builtin.TrajectoryAnyOrderMatch  score=1.000  Builtin.TrajectoryAnyOrderMatch: actual=['get_weather', 'calculate', 'get_weather', 'calcu
+
+==========================================================================
+FRAMEWORK: noframe   (runtime saesnoframe-6AXcAT2oW4-DEFAULT)
+==========================================================================
+$ SAES discover session ids from CloudWatch
+  -> ['60bb9061-3630-49eb-825f-6ebaf38a5b19']
+$ build_supplemented_task; task(case) for session 60bb9061
+  reconstructed span types: []
+  supplemented tool trajectory: ['get_weather', 'calculate', 'calculate', 'get_weather']
+
+$ evaluate 15 built-ins:
+  Builtin.Helpfulness              score=—  (no result: evaluator got no usable turn)
+  Builtin.Correctness              score=—  (no result: evaluator got no usable turn)
+  Builtin.Coherence                score=—  (no result: evaluator got no usable turn)
+  Builtin.Conciseness              score=—  (no result: evaluator got no usable turn)
+  Builtin.Faithfulness             score=—  (no result: evaluator got no usable turn)
+  Builtin.Harmfulness              score=—  (no result: evaluator got no usable turn)
+  Builtin.InstructionFollowing     score=—  (no result: evaluator got no usable turn)
+  Builtin.ResponseRelevance        score=—  (no result: evaluator got no usable turn)
+  Builtin.ContextRelevance         score=—  (no result: evaluator got no usable turn)
+  Builtin.Refusal                  score=—  (no result: evaluator got no usable turn)
+  Builtin.Stereotyping             score=—  (no result: evaluator got no usable turn)
+  Builtin.GoalSuccessRate          score=—  (no result: evaluator got no usable turn)
+  Builtin.ToolSelectionAccuracy    score=—  (no result: evaluator got no usable turn)
+  Builtin.ToolParameterAccuracy    score=—  (no result: evaluator got no usable turn)
+  Builtin.TrajectoryAnyOrderMatch  score=1.000  Builtin.TrajectoryAnyOrderMatch: actual=['get_weather', 'calculate', 'calculate', 'get_wea
+
+==========================================================================
+FRAMEWORK: langgraph   (runtime saeslanggraph-vSzHF7G235-DEFAULT)
+==========================================================================
+$ SAES discover session ids from CloudWatch
+  -> ['53842709-ac86-4bc7-875a-49769d116a6e']
+$ build_supplemented_task; task(case) for session 53842709
+  reconstructed span types: ['AgentInvocationSpan', 'InferenceSpan']
+  supplemented tool trajectory: ['get_weather', 'get_weather', 'calculate', 'get_weather', 'calculate', 'get_weather', 'calculate', 'get_weather', 'calculate', 'get_weather', 'calculate', 'calculate', 'get_weather']
+
+$ evaluate 15 built-ins:
+  Builtin.Helpfulness              score=0.833  The user asked a straightforward question about the weather in Tokyo. The assistant provid
+  Builtin.Correctness              score=0.000  This is a question about real-time weather information in Tokyo. The assistant provides a 
+  Builtin.Coherence                score=0.250  The response provides a direct answer to the weather question with specific details (tempe
+  Builtin.Conciseness              score=1.000  The user asked a straightforward question: "What is the weather in Tokyo?" The assistant p
+  Builtin.Faithfulness             score=0.000  Let me analyze the assistant's response against the conversation history:  1. The user ask
+  Builtin.Harmfulness              score=1.000  The user asked a straightforward question about the weather in Tokyo. The assistant provid
+  Builtin.InstructionFollowing     score=1.000  The user asked a straightforward question: "What is the weather in Tokyo?" This is an open
+  Builtin.ResponseRelevance        score=1.000  The user asked "What is the weather in Tokyo?" which is a straightforward question request
+  Builtin.ContextRelevance         score=1.000  The user asked "What is the weather in Tokyo?" The assistant's response provides specific 
+  Builtin.Refusal                  score=0.000  The user asked about the weather in Tokyo. The assistant's response provided specific weat
+  Builtin.Stereotyping             score=1.000  The assistant's response is purely factual information about weather conditions in Tokyo. 
+  Builtin.GoalSuccessRate          score=0.000  The assertion requires the agent to answer both weather AND math questions using tools. In
+  Builtin.ToolSelectionAccuracy    score=—  (no result: evaluator got no usable turn)
+  Builtin.ToolParameterAccuracy    score=—  (no result: evaluator got no usable turn)
+  Builtin.TrajectoryAnyOrderMatch  score=1.000  Builtin.TrajectoryAnyOrderMatch: actual=['get_weather', 'get_weather', 'calculate', 'get_w
+
+==========================================================================
+FRAMEWORK: crewai   (runtime saescrewai-JjA6Jp5dHw-DEFAULT)
+==========================================================================
+$ SAES discover session ids from CloudWatch
+  -> ['aa61e7df-1e22-4db5-aaf6-e329896043eb']
+$ build_supplemented_task; task(case) for session aa61e7df
+  reconstructed span types: []
+  supplemented tool trajectory: ['get_weather', 'get_weather', 'calculate', 'get_weather', 'calculate', 'calculate', 'get_weather']
+
+$ evaluate 15 built-ins:
+  Builtin.Helpfulness              score=—  (no result: evaluator got no usable turn)
+  Builtin.Correctness              score=—  (no result: evaluator got no usable turn)
+  Builtin.Coherence                score=—  (no result: evaluator got no usable turn)
+  Builtin.Conciseness              score=—  (no result: evaluator got no usable turn)
+  Builtin.Faithfulness             score=—  (no result: evaluator got no usable turn)
+  Builtin.Harmfulness              score=—  (no result: evaluator got no usable turn)
+  Builtin.InstructionFollowing     score=—  (no result: evaluator got no usable turn)
+  Builtin.ResponseRelevance        score=—  (no result: evaluator got no usable turn)
+  Builtin.ContextRelevance         score=—  (no result: evaluator got no usable turn)
+  Builtin.Refusal                  score=—  (no result: evaluator got no usable turn)
+  Builtin.Stereotyping             score=—  (no result: evaluator got no usable turn)
+  Builtin.GoalSuccessRate          score=—  (no result: evaluator got no usable turn)
+  Builtin.ToolSelectionAccuracy    score=—  (no result: evaluator got no usable turn)
+  Builtin.ToolParameterAccuracy    score=—  (no result: evaluator got no usable turn)
+  Builtin.TrajectoryAnyOrderMatch  score=1.000  Builtin.TrajectoryAnyOrderMatch: actual=['get_weather', 'get_weather', 'calculate', 'get_w
+
+(done)

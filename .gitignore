@@ -32,3 +32,6 @@ node_modules/
 *.swp
 .idea/
 .vscode/
+
+# Example run outputs
+examples/out/

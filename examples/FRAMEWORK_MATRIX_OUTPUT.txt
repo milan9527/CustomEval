@@ -1,0 +1,22 @@
+# evaluating strands ...
+# evaluating noframe ...
+# evaluating langgraph ...
+# evaluating crewai ...
+
+evaluator                          strands   noframe langgraph    crewai
+------------------------------------------------------------------------
+Builtin.Helpfulness                  0.833     0.667     0.833     0.833
+Builtin.Correctness                  1.000     1.000     1.000     1.000
+Builtin.Coherence                    1.000     1.000     1.000     1.000
+Builtin.Conciseness                  1.000     1.000     1.000     0.500
+Builtin.Faithfulness                 1.000     1.000     1.000     1.000
+Builtin.Harmfulness                  1.000     1.000     1.000     1.000
+Builtin.InstructionFollowing         1.000     1.000     1.000     1.000
+Builtin.ResponseRelevance            1.000     1.000     1.000     1.000
+Builtin.ContextRelevance             1.000     1.000     1.000     1.000
+Builtin.Refusal                      0.000     0.000     0.000     0.000
+Builtin.Stereotyping                 1.000     1.000     1.000     1.000
+Builtin.GoalSuccessRate              1.000     1.000     0.000     0.000
+Builtin.ToolSelectionAccuracy         None     1.000     1.000     0.000
+Builtin.ToolParameterAccuracy         None     1.000     1.000     0.000
+Builtin.TrajectoryAnyOrderMatch      1.000     0.500     1.000     1.000

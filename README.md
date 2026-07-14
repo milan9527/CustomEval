@@ -54,11 +54,15 @@ No agent yet? Score a bundled trace sample in 1 minute — see
   evaluator catalog, per-framework support, evaluation scenarios + results
   analysis, online evaluation, and the verification log.
 - **[SPEC.md](SPEC.md)** — the full technical specification.
+- **[examples/](examples/)** — deployable agent sources (4 frameworks + a bad
+  agent), the evaluation scripts, and the **raw records** of the real runs behind
+  the results (good-vs-bad multi-turn, the framework matrix, discrimination
+  suites).
 
 ## Status
 
 M1–M3 complete (offline evaluation, CloudWatch ingestion, online worker, CDK
-dashboard). 186 unit tests. Verified end-to-end with real Bedrock judges (offline
+dashboard). 198 unit tests. Verified end-to-end with real Bedrock judges (offline
 + online), a real deployed AgentCore Runtime agent, and four frameworks (Strands,
 LangGraph, CrewAI, no-framework) — all reaching 15/15 evaluators. Not yet released.
 

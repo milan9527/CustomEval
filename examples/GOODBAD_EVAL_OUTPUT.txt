@@ -1,0 +1,47 @@
+
+########## good-strands  (session goodstrands1784015164ses...) ##########
+  Builtin.Helpfulness               0.833   The assistant provided exactly what the user asked: weather in Paris and 12 times 8. The response is clear, accurate, and directly addresses the user'
+  Builtin.InstructionFollowing      1.000   The user asked for the weather in Paris and to compute 12 times 8. The response includes both the weather information and the multiplication result. N
+  Builtin.ResponseRelevance         1.000   The assistant's response fully answers both parts of the user's query: it gives the weather in Paris and calculates 12 times 8. All sentences directly
+  Builtin.Coherence                 1.000   The assistant provided simple factual statements without reasoning. There are no self-contradictions or gaps. According to the rubric, when no reasoni
+  Builtin.GoalSuccessRate           1.000   The agent correctly used get_weather for each weather question and calculate for each math query, providing answers for all user requests. The success
+
+########## good-noframe  (session goodnoframe1784015164ses...) ##########
+  Builtin.Helpfulness                None   (no result)
+  Builtin.InstructionFollowing       None   (no result)
+  Builtin.ResponseRelevance          None   (no result)
+  Builtin.Coherence                  None   (no result)
+  Builtin.GoalSuccessRate            None   (no result)
+
+########## good-langgraph  (session goodlanggraph1784015164s...) ##########
+  Builtin.Helpfulness               0.000   The assistant failed to answer the user’s initial query about the weather in Paris and instead provided the weather for Tokyo, which does not address 
+  Builtin.InstructionFollowing      0.000   The user explicitly requested the weather in Paris and the result of 12 times 8. The assistant answered with the weather for Tokyo and omitted both th
+  Builtin.ResponseRelevance         0.000   The user asked for two things: the weather in Paris and the result of 12 times 8. The assistant's reply mentions the weather in Tokyo but does not add
+  Builtin.Coherence                 0.000   The assistant’s response asserts that the weather in Tokyo is 22°C (approx. 72°F), whereas the user explicitly asked for the weather in Paris, plus th
+  Builtin.GoalSuccessRate           0.000   The assistant performed the correct calls for Paris weather and 12×8, but in its final reply omitted Paris’ weather and instead reported Tokyo’s weath
+
+########## good-crewai  (session goodcrewai1784015164sess...) ##########
+  Builtin.Helpfulness               0.833   The assistant's response directly addresses a likely user request for Tokyo weather by providing the current temperature and conditions. It uses the t
+  Builtin.InstructionFollowing      1.000   The assistant's response includes the weather for Tokyo, consistent with the tool result. The user query was not provided and there were no explicit i
+  Builtin.ResponseRelevance         1.000   The response directly repeats the information from the tool call about Tokyo’s weather and does not include any unrelated content. Thus every part of 
+  Builtin.Coherence                 1.000   The assistant’s reply only states a fact about the weather, with no internal arguments or claims requiring logical scrutiny. There are no self‑contrad
+  Builtin.GoalSuccessRate           0.000   The assistant only provided a response to the Tokyo weather query. It did not answer the Paris weather request or the two math calculations. Therefore
+
+########## bad-strands  (session badstrands1784015164sess...) ##########
+  Builtin.Helpfulness               0.167   The assistant did not provide the requested weather information for Paris or the multiplication result (96). Instead it offered irrelevant philosophic
+  Builtin.InstructionFollowing      0.000   The user asked for two specific pieces of information: the weather in Paris and the product of 12 times 8. The assistant’s reply does not provide eith
+  Builtin.ResponseRelevance         0.000   The assistant’s reply does not answer the user’s request for the weather in Paris nor the result of 12 times 8. It only mentions Paris without giving 
+  Builtin.Coherence                 0.000   The assistant’s reply does not address the user’s request at all. It supplies no weather information for Paris, and it gives no calculation or reasoni
+  Builtin.GoalSuccessRate            None   (no result)
+
+
+=== SUMMARY: score by evaluator (good agents vs bad-strands) ===
+evaluator                         strands    noframe  langgraph     crewai   !strands
+-------------------------------------------------------------------------------------
+Builtin.Helpfulness                 0.833       None      0.000      0.833      0.167
+Builtin.InstructionFollowing        1.000       None      0.000      1.000      0.000
+Builtin.ResponseRelevance           1.000       None      0.000      1.000      0.000
+Builtin.Coherence                   1.000       None      0.000      1.000      0.000
+Builtin.GoalSuccessRate             1.000       None      0.000      0.000       None
+
+(! = bad-strands. Lower scores on the bad agent = evaluators discriminate.)
