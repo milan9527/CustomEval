@@ -15,6 +15,8 @@ non-zero when the CI gate fails (SPEC §8.1). `serve` runs the online worker loo
 from __future__ import annotations
 
 import asyncio
+import contextlib
+import logging
 from pathlib import Path
 
 import typer
@@ -210,10 +212,44 @@ def _runtime_log_group(runtime: str) -> str:
     return f"/aws/bedrock-agentcore/runtimes/{runtime}"
 
 
+# Reference-free built-ins: score with no ground truth, so they are the safe
+# default for the zero-config `saes eval`. (Correctness/GoalSuccessRate/trajectory
+# matchers need expectedResponse/assertions/expectedTrajectory — use `saes run`.)
+_REFERENCE_FREE_EVALUATORS = [
+    "Builtin.Helpfulness",
+    "Builtin.Coherence",
+    "Builtin.Conciseness",
+    "Builtin.Faithfulness",
+    "Builtin.InstructionFollowing",
+    "Builtin.ResponseRelevance",
+    "Builtin.ContextRelevance",
+    "Builtin.Harmfulness",
+    "Builtin.Refusal",
+    "Builtin.Stereotyping",
+    "Builtin.ToolSelectionAccuracy",
+    "Builtin.ToolParameterAccuracy",
+]
+
+
+@contextlib.contextmanager
+def _quiet_judge_retry_noise():
+    """Silence the per-retry ERROR the Strands tool executor logs when a judge
+    model emits a slightly malformed structured-output tool name (e.g. gpt-oss
+    returning 'HhelpfulnessRating'). The judge retries and still scores; the line
+    is benign noise, not a failure. Restored on exit."""
+    lg = logging.getLogger("strands.tools.executors._executor")
+    saved = lg.level
+    lg.setLevel(logging.CRITICAL)
+    try:
+        yield
+    finally:
+        lg.setLevel(saved)
+
+
 @app.command()
 def eval(  # noqa: A001 - deliberately named `eval` for the CLI verb
     runtime: str = typer.Argument(
-        ...,
+        None,
         help="AgentCore Runtime id (e.g. 'myagent-XyZ123'), or its full CloudWatch log group",
     ),
     judge_model: str = typer.Option(
@@ -232,10 +268,24 @@ def eval(  # noqa: A001 - deliberately named `eval` for the CLI verb
         7, "--lookback-days", "--days",
         help="How many days of traces to scan (default 7; increase for older sessions)",
     ),
-    evaluators: str = typer.Option(
-        "Builtin.Helpfulness,Builtin.Coherence,Builtin.Conciseness,Builtin.ResponseRelevance",
-        "--evaluators",
-        help="Comma-separated evaluator ids (default: reference-free, no ground truth needed)",
+    evaluators: str | None = typer.Option(
+        None, "--evaluators", "-e",
+        help="Comma-separated evaluator ids. Default: the 12 reference-free built-ins. "
+             "Use --all for every built-in, or --list-evaluators to see them.",
+    ),
+    all_evaluators: bool = typer.Option(
+        False, "--all",
+        help="Run all 13 built-in evaluators (adds Correctness + GoalSuccessRate; "
+             "they score better with ground truth via `saes run`).",
+    ),
+    sampling: float = typer.Option(
+        100.0, "--sampling", "--sample",
+        min=0.0, max=100.0,
+        help="Percent of discovered sessions to score (default 100). Deterministic "
+             "by session id, matching AgentCore Evaluations' sampling.",
+    ),
+    list_evaluators: bool = typer.Option(
+        False, "--list-evaluators", help="List the available evaluator ids and exit."
     ),
     html_out: Path | None = typer.Option(None, "--html", help="Write HTML report here"),
     json_out: Path | None = typer.Option(None, "--json", help="Write JSON report here"),
@@ -253,12 +303,45 @@ def eval(  # noqa: A001 - deliberately named `eval` for the CLI verb
         EvaluationConfig,
         EvaluatorRef,
         JudgeModelConfig,
+        SamplingConfig,
     )
+    from .evaluators.registry import available_builtins
     from .report import build_report, write_html, write_json
     from .run import run_on_demand
 
+    if list_evaluators:
+        typer.secho("built-in evaluators:", fg=typer.colors.GREEN)
+        for eid in available_builtins():
+            tag = "" if eid in _REFERENCE_FREE_EVALUATORS else "  (needs ground truth → saes run)"
+            typer.echo(f"  {eid}{tag}")
+        typer.echo(
+            "\ncustom evaluators: define type: llm / type: code in a config (saes run)."
+        )
+        raise typer.Exit(code=0)
+
+    if not runtime:
+        typer.secho("error: RUNTIME is required (or use --list-evaluators)",
+                    fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=2)
+
+    # Choose evaluators: explicit --evaluators wins, else --all, else the
+    # reference-free default (needs no ground truth).
+    if evaluators:
+        ev_ids = [e.strip() for e in evaluators.split(",") if e.strip()]
+    elif all_evaluators:
+        ev_ids = [e for e in available_builtins() if not e.startswith("Builtin.Trajectory")]
+    else:
+        ev_ids = list(_REFERENCE_FREE_EVALUATORS)
+
+    # Validate ids up front so a typo fails fast with the valid list.
+    valid = set(available_builtins())
+    unknown = [e for e in ev_ids if e not in valid]
+    if unknown:
+        typer.secho(f"unknown evaluator id(s): {', '.join(unknown)}", fg=typer.colors.RED, err=True)
+        typer.echo("run `saes eval --list-evaluators` to see valid ids.", err=True)
+        raise typer.Exit(code=2)
+
     log_group = _runtime_log_group(runtime)
-    ev_ids = [e.strip() for e in evaluators.split(",") if e.strip()]
     cfg = EvaluationConfig(
         name=f"eval-{runtime.split('/')[-1]}",
         mode="on_demand",
@@ -272,16 +355,19 @@ def eval(  # noqa: A001 - deliberately named `eval` for the CLI verb
         judge=JudgeModelConfig(
             model=judge_model, base_url=judge_base_url, api_key_env=api_key_env
         ),
+        sampling=SamplingConfig(percentage=sampling),
     )
 
     typer.secho(f"evaluating {log_group}", fg=typer.colors.GREEN)
+    sample_note = "" if sampling >= 100.0 else f"  |  sampling {sampling:g}%"
     typer.echo(
-        f"  judge: {judge_model}  |  last {lookback_days}d  |  "
-        f"evaluators: {', '.join(ev_ids)}"
+        f"  judge: {judge_model}  |  last {lookback_days}d{sample_note}  |  "
+        f"{len(ev_ids)} evaluator(s): {', '.join(ev_ids)}"
     )
 
     try:
-        result = asyncio.run(run_on_demand(cfg))
+        with _quiet_judge_retry_noise():
+            result = asyncio.run(run_on_demand(cfg))
     except Exception as exc:  # noqa: BLE001 - surface a clean message, not a traceback
         msg = str(exc)
         if "ResourceNotFoundException" in type(exc).__name__ or "does not exist" in msg:

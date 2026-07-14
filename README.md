@@ -29,8 +29,18 @@ saes eval myagent-XXXXXXXXXX --html out/report.html      # ← your AgentCore Ru
 ```
 
 `saes eval` derives the runtime's CloudWatch log group, discovers its sessions,
-and scores them with reference-free evaluators. Full start-to-finish example
-(build agent → deploy → evaluate) in **[WALKTHROUGH.md](WALKTHROUGH.md)**.
+and scores them with the 12 reference-free built-in evaluators. Options mirror
+AgentCore Evaluations:
+
+```bash
+saes eval --list-evaluators                            # all 13 built-ins + trajectory matchers
+saes eval myagent-XXX -e Builtin.Helpfulness,Builtin.Harmfulness   # pick evaluators
+saes eval myagent-XXX --all                            # every built-in
+saes eval myagent-XXX --sampling 25                    # score 25% of sessions
+```
+
+Full start-to-finish example (build agent → deploy → evaluate) in
+**[WALKTHROUGH.md](WALKTHROUGH.md)**.
 
 No agent yet? Score a bundled trace sample in 1 minute — see
 [DOCUMENTATION.md §4.0](DOCUMENTATION.md#40-i-just-cloned-this-repo-and-i-have-my-own-agent--where-do-i-start).

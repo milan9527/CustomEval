@@ -133,6 +133,12 @@ def _cloudwatch_task(
     provider = build_provider(config.data_source.cloudwatch)
     cw_cfg = config.data_source.cloudwatch
     session_ids = discover_session_ids(provider, cw_cfg)
+    # optional sampling (SPEC §8.2): score a stable percentage of discovered
+    # sessions. Deterministic by session-id hash so the same run is reproducible.
+    if config.sampling is not None and config.sampling.percentage < 100.0:
+        from ..online.worker import _sampled
+
+        session_ids = _sampled(session_ids, config.sampling.percentage)
     cases = [_case_for(sid, gt) for sid in session_ids]
     # native read+map, wrapped with the non-Strands tool-trajectory supplement
     task = build_supplemented_task(provider, cw_cfg)

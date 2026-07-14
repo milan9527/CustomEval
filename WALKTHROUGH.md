@@ -186,13 +186,21 @@ Real output from this exact command (against the reference `saesstrands` runtime
 
 ```
 evaluating /aws/bedrock-agentcore/runtimes/myagent-XXXXXXXXXX-DEFAULT
-  judge: openai.gpt-oss-20b-1:0  |  last 7d  |  evaluators: Builtin.Helpfulness, Builtin.Coherence, Builtin.Conciseness, Builtin.ResponseRelevance
+  judge: openai.gpt-oss-20b-1:0  |  last 7d  |  12 evaluator(s): Builtin.Helpfulness, Builtin.Coherence, ...
 
 eval-myagent-XXXXXXXXXX  (judge: openai.gpt-oss-20b-1:0)  [1 session(s)]
   Builtin.Helpfulness              avg=0.833  pass=100%  n=1
   Builtin.Coherence                avg=1.000  pass=100%  n=1
   Builtin.Conciseness              avg=1.000  pass=100%  n=1
+  Builtin.Faithfulness             avg=1.000  pass=100%  n=1
+  Builtin.InstructionFollowing     avg=1.000  pass=100%  n=1
   Builtin.ResponseRelevance        avg=1.000  pass=100%  n=1
+  Builtin.ContextRelevance         avg=1.000  pass=100%  n=1
+  Builtin.Harmfulness              avg=1.000  pass=100%  n=1
+  Builtin.Refusal                  avg=0.000  pass=0%  n=1
+  Builtin.Stereotyping             avg=1.000  pass=100%  n=1
+  Builtin.ToolSelectionAccuracy    avg=1.000  pass=100%  n=...
+  Builtin.ToolParameterAccuracy    avg=1.000  pass=100%  n=...
 
 HTML  → out/report.html
 ```
@@ -201,22 +209,32 @@ That's the full loop: **AgentCore agent → auto OTEL → CloudWatch → `saes e
 reads + scores it.** `out/report.html` is a self-contained report with the
 judge's reasoning per result.
 
-By default `saes eval` scans the **last 7 days** of traces. If you see
-`no sessions found`, the agent hasn't run recently or the session is older —
-widen the window with `--days`:
+### Choosing evaluators & sampling (AgentCore-parity options)
+
+By default `saes eval` runs the **12 reference-free built-ins** (they need no
+ground truth). List everything available, pick your own, or run all 13:
 
 ```bash
+saes eval --list-evaluators                       # show all built-in ids
+
 saes eval myagent-XXXXXXXXXX \
-  --days 30 \                                            # scan the last 30 days
-  --evaluators Builtin.Helpfulness,Builtin.Coherence \   # pick your own
+  --evaluators Builtin.Helpfulness,Builtin.Harmfulness \  # only these (also: -e)
+  --sampling 25 \                                         # score 25% of sessions (deterministic)
+  --days 30 \                                             # scan the last 30 days
   --judge-model gpt-4.1 --judge-base-url https://api.openai.com/v1   # a different judge
+
+saes eval myagent-XXXXXXXXXX --all                # all 13 built-ins
 ```
 
-> `saes eval` uses **reference-free** evaluators by default (Helpfulness,
-> Coherence, Conciseness, ResponseRelevance) — they need no ground truth. To also
-> score against expected answers or tool trajectories (Correctness,
-> Trajectory*Match, ToolSelectionAccuracy…), or to gate a CI build, write a full
-> config and use `saes run` / `saes serve` — see DOCUMENTATION.md §5, §11.
+> The three **Correctness / GoalSuccessRate / Trajectory\*Match** evaluators
+> score against ground truth (expected answer / assertions / expected tool
+> sequence). `--all` includes Correctness + GoalSuccessRate but they score best
+> when you supply ground truth — for that (and CI gates, or custom LLM/code
+> evaluators), write a full config and use `saes run` / `saes serve` —
+> DOCUMENTATION.md §5, §6, §11.
+
+If you see `no sessions found`, the agent hasn't run recently or the session is
+older than the window — widen it with `--days 30`.
 
 ---
 

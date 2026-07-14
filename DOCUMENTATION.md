@@ -328,9 +328,20 @@ saes eval <your-runtime-id> --html out/report.html
 #   scans the last 7 days by default; widen with --days 30 if the session is older
 ```
 
-That's the whole thing for AgentCore. (For expected-answer / trajectory
-evaluators or a CI gate, write a full config and use `saes run` / `saes serve` —
-§5, §11. To point at your own non-AgentCore CloudWatch log group, use a config
+Options (mirroring AgentCore Evaluations):
+
+```bash
+saes eval --list-evaluators                          # show all built-in ids
+saes eval <runtime> --all                            # all 13 built-ins (default: 12 reference-free)
+saes eval <runtime> -e Builtin.Helpfulness,Builtin.Harmfulness   # choose evaluators
+saes eval <runtime> --sampling 25                    # score 25% of sessions (deterministic)
+saes eval <runtime> --judge-model gpt-4.1 --judge-base-url https://api.openai.com/v1
+```
+
+That's the whole thing for AgentCore. (For the three ground-truth evaluators —
+Correctness / GoalSuccessRate / Trajectory\*Match — or a CI gate or custom
+LLM/code evaluators, write a full config and use `saes run` / `saes serve` — §5,
+§6, §11. To point at your own non-AgentCore CloudWatch log group, use a config
 with `dataSource.type: cloudwatch` and `log_group_names`.)
 
 **Path B — you can export a local OTEL/OTLP dump** (dev / CI, no trace store).

@@ -197,8 +197,75 @@ def test_eval_builds_config_from_runtime_id(tmp_path, monkeypatch):
     ]
     assert cfg.data_source.cloudwatch.lookback_days == 2
     assert cfg.ground_truth is None
-    assert cfg.evaluators  # defaults populated
+    # default = the 12 reference-free built-ins (no ground truth needed)
+    assert len(cfg.evaluators) == 12
+    assert {e.id for e in cfg.evaluators} == set(_REFERENCE_FREE)
     assert "Builtin.Helpfulness" in result.output
+
+
+_REFERENCE_FREE = {
+    "Builtin.Helpfulness", "Builtin.Coherence", "Builtin.Conciseness",
+    "Builtin.Faithfulness", "Builtin.InstructionFollowing", "Builtin.ResponseRelevance",
+    "Builtin.ContextRelevance", "Builtin.Harmfulness", "Builtin.Refusal",
+    "Builtin.Stereotyping", "Builtin.ToolSelectionAccuracy", "Builtin.ToolParameterAccuracy",
+}
+
+
+def test_eval_all_flag_selects_all_builtins(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(
+        "saes.run.run_on_demand",
+        lambda cfg: (captured.__setitem__("cfg", cfg), _async(_fake_run_result(0.9)))[1],
+    )
+    result = runner.invoke(app, ["eval", "myagent-XyZ", "--all"])
+    assert result.exit_code == 0, result.output
+    ids = {e.id for e in captured["cfg"].evaluators}
+    # --all adds the ground-truth built-ins too, but excludes trajectory matchers
+    assert "Builtin.Correctness" in ids and "Builtin.GoalSuccessRate" in ids
+    assert not any(i.startswith("Builtin.Trajectory") for i in ids)
+
+
+def test_eval_explicit_evaluators(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(
+        "saes.run.run_on_demand",
+        lambda cfg: (captured.__setitem__("cfg", cfg), _async(_fake_run_result(0.9)))[1],
+    )
+    result = runner.invoke(
+        app, ["eval", "myagent-XyZ", "-e", "Builtin.Helpfulness,Builtin.Harmfulness"]
+    )
+    assert result.exit_code == 0, result.output
+    assert [e.id for e in captured["cfg"].evaluators] == [
+        "Builtin.Helpfulness", "Builtin.Harmfulness"
+    ]
+
+
+def test_eval_sampling_flag_reaches_config(monkeypatch):
+    captured = {}
+    monkeypatch.setattr(
+        "saes.run.run_on_demand",
+        lambda cfg: (captured.__setitem__("cfg", cfg), _async(_fake_run_result(0.9)))[1],
+    )
+    result = runner.invoke(app, ["eval", "myagent-XyZ", "--sampling", "25"])
+    assert result.exit_code == 0, result.output
+    assert captured["cfg"].sampling.percentage == 25.0
+    assert "sampling 25%" in result.output
+
+
+def test_eval_unknown_evaluator_rejected(monkeypatch):
+    monkeypatch.setattr("saes.run.run_on_demand", lambda cfg: _async(_fake_run_result(0.9)))
+    result = runner.invoke(app, ["eval", "myagent-XyZ", "-e", "Builtin.Nope"])
+    assert result.exit_code == 2
+    assert "unknown evaluator" in result.output
+
+
+def test_eval_list_evaluators():
+    result = runner.invoke(app, ["eval", "--list-evaluators"])
+    assert result.exit_code == 0, result.output
+    assert "Builtin.Helpfulness" in result.output
+    assert "Builtin.Correctness" in result.output
+    # ground-truth ones are tagged
+    assert "needs ground truth" in result.output
 
 
 def test_eval_reports_when_no_sessions(tmp_path, monkeypatch):
@@ -254,7 +321,9 @@ def _empty_run_result():
     return RunResult(
         config_name="eval-x", judge_model="m", report=_Report(),
         evaluator_ids=["Builtin.Helpfulness"], session_ids=[],
-        aggregates={"Builtin.Helpfulness": {"avg": 0.0, "pass_rate": 0.0, "n": 0.0, "errored": 0.0}},
+        aggregates={
+            "Builtin.Helpfulness": {"avg": 0.0, "pass_rate": 0.0, "n": 0.0, "errored": 0.0}
+        },
     )
 
 
