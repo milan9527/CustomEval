@@ -21,6 +21,7 @@ pip install -e '.[dev]' openai aws-bedrock-token-generator
 export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region=\"us-east-1\"))')"
 
 saes eval myagent-XXXXXXXXXX --html out/report.html      # ← your AgentCore Runtime id
+#   scans the last 7 days by default; add --days 30 for older sessions
 #   evaluating /aws/bedrock-agentcore/runtimes/myagent-XXXXXXXXXX-DEFAULT
 #     Builtin.Helpfulness        avg=0.833  pass=100%  n=1
 #     Builtin.Coherence          avg=1.000  pass=100%  n=1

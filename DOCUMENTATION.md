@@ -325,7 +325,7 @@ sessions, and scores them. No YAML, no ground truth:
 
 ```bash
 saes eval <your-runtime-id> --html out/report.html
-#   e.g.  saes eval myagent-XyZ123 --lookback-days 3
+#   scans the last 7 days by default; widen with --days 30 if the session is older
 ```
 
 That's the whole thing for AgentCore. (For expected-answer / trajectory

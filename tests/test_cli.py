@@ -202,25 +202,59 @@ def test_eval_builds_config_from_runtime_id(tmp_path, monkeypatch):
 
 
 def test_eval_reports_when_no_sessions(tmp_path, monkeypatch):
-    """No traces in the window -> a clear message, not a crash."""
+    """No sessions discovered -> an actionable message suggesting a wider window,
+    not a wall of n=0 rows. (The runner still returns one n=0 aggregate row per
+    evaluator, so detection keys off session_ids, not empty aggregates.)"""
     monkeypatch.setattr(
         "saes.run.run_on_demand",
         lambda cfg: _async(_empty_run_result()),
     )
     result = runner.invoke(app, ["eval", "myagent-XyZ"])
     assert result.exit_code == 0, result.output
-    assert "no sessions scored" in result.output
+    assert "no sessions found" in result.output
+    assert "--days 30" in result.output          # suggests widening the window
+    assert "avg=0.000" not in result.output       # no zero-row wall
+
+
+def test_eval_lookback_flag_reaches_config(monkeypatch):
+    """--days / --lookback-days sets the CloudWatch lookback window."""
+    captured = {}
+    monkeypatch.setattr(
+        "saes.run.run_on_demand",
+        lambda cfg: (captured.__setitem__("cfg", cfg), _async(_fake_run_result(0.9)))[1],
+    )
+    result = runner.invoke(app, ["eval", "myagent-XyZ", "--days", "30"])
+    assert result.exit_code == 0, result.output
+    assert captured["cfg"].data_source.cloudwatch.lookback_days == 30
+    assert "last 30d" in result.output
+
+
+def test_eval_missing_log_group_clean_error(monkeypatch):
+    """A bad runtime id / nonexistent log group -> a clean message + exit 1, not
+    a raw ResourceNotFoundException traceback."""
+    def _boom(cfg):
+        raise RuntimeError(
+            "ResourceNotFoundException: Log group '/aws/...' does not exist"
+        )
+    monkeypatch.setattr("saes.run.run_on_demand", _boom)
+    result = runner.invoke(app, ["eval", "typo-agent"])
+    assert result.exit_code == 1
+    assert "log group not found" in result.output
+    assert "check the runtime id" in result.output
 
 
 def _empty_run_result():
     class _Report:
+        # aggregates present with n=0 (what the runner really returns for 0
+        # sessions) — the point being detection must NOT rely on empty aggregates
         detailed_results = []
         cases = []
         overall_score = 0.0
 
     return RunResult(
         config_name="eval-x", judge_model="m", report=_Report(),
-        evaluator_ids=[], session_ids=[], aggregates={},
+        evaluator_ids=["Builtin.Helpfulness"], session_ids=[],
+        aggregates={"Builtin.Helpfulness": {"avg": 0.0, "pass_rate": 0.0, "n": 0.0, "errored": 0.0}},
     )
 
 

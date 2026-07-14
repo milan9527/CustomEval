@@ -228,7 +228,10 @@ def eval(  # noqa: A001 - deliberately named `eval` for the CLI verb
         "SAES_JUDGE_API_KEY", "--api-key-env", help="Env var holding the judge API key"
     ),
     region: str = typer.Option("us-east-1", "--region"),
-    lookback_days: int = typer.Option(1, "--lookback-days", help="How far back to look for traces"),
+    lookback_days: int = typer.Option(
+        7, "--lookback-days", "--days",
+        help="How many days of traces to scan (default 7; increase for older sessions)",
+    ),
     evaluators: str = typer.Option(
         "Builtin.Helpfulness,Builtin.Coherence,Builtin.Conciseness,Builtin.ResponseRelevance",
         "--evaluators",
@@ -272,23 +275,57 @@ def eval(  # noqa: A001 - deliberately named `eval` for the CLI verb
     )
 
     typer.secho(f"evaluating {log_group}", fg=typer.colors.GREEN)
-    typer.echo(f"  judge: {judge_model}  |  evaluators: {', '.join(ev_ids)}")
+    typer.echo(
+        f"  judge: {judge_model}  |  last {lookback_days}d  |  "
+        f"evaluators: {', '.join(ev_ids)}"
+    )
 
-    result = asyncio.run(run_on_demand(cfg))
+    try:
+        result = asyncio.run(run_on_demand(cfg))
+    except Exception as exc:  # noqa: BLE001 - surface a clean message, not a traceback
+        msg = str(exc)
+        if "ResourceNotFoundException" in type(exc).__name__ or "does not exist" in msg:
+            typer.secho(
+                f"\nlog group not found: {log_group}", fg=typer.colors.RED, err=True
+            )
+            typer.echo(
+                "  • check the runtime id (e.g. 'myagent-XyZ123' — no '-DEFAULT' needed)\n"
+                "  • or the agent has never emitted traces to CloudWatch yet.",
+                err=True,
+            )
+        else:
+            typer.secho(f"\nevaluation failed: {msg}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1) from exc
     doc = build_report(result)
 
-    typer.echo(f"\n{doc.config_name}  (judge: {doc.judge_model})")
-    if not doc.aggregates:
+    # No sessions discovered in the window is the common "n=0 everywhere" cause —
+    # detect it explicitly (aggregates still carry one n=0 row per evaluator) and
+    # give an actionable message instead of a wall of zeros.
+    if not result.session_ids:
         typer.secho(
-            "  no sessions scored — no traces found in the lookback window, or the "
-            "session hasn't finished. Try a larger --lookback-days.",
+            f"\nno sessions found in {log_group} over the last {lookback_days} day(s).",
             fg=typer.colors.YELLOW,
         )
-    for ev_id, stats in doc.aggregates.items():
         typer.echo(
+            "  • widen the window:  saes eval "
+            f"{runtime} --days 30\n"
+            "  • or the agent hasn't run recently / traces aren't indexed yet "
+            "(~90s after an invoke)."
+        )
+        raise typer.Exit(code=0)
+
+    typer.echo(
+        f"\n{doc.config_name}  (judge: {doc.judge_model})  "
+        f"[{len(result.session_ids)} session(s)]"
+    )
+    for ev_id, stats in doc.aggregates.items():
+        line = (
             f"  {ev_id:32s} avg={stats['avg']:.3f}  "
             f"pass={stats['pass_rate'] * 100:.0f}%  n={int(stats['n'])}"
         )
+        if stats.get("errored"):
+            line += f"  errored={int(stats['errored'])}"
+        typer.echo(line)
     if json_out is not None:
         write_json(doc, json_out)
         typer.echo(f"\nJSON  → {json_out}")

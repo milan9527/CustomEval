@@ -186,9 +186,9 @@ Real output from this exact command (against the reference `saesstrands` runtime
 
 ```
 evaluating /aws/bedrock-agentcore/runtimes/myagent-XXXXXXXXXX-DEFAULT
-  judge: openai.gpt-oss-20b-1:0  |  evaluators: Builtin.Helpfulness, Builtin.Coherence, Builtin.Conciseness, Builtin.ResponseRelevance
+  judge: openai.gpt-oss-20b-1:0  |  last 7d  |  evaluators: Builtin.Helpfulness, Builtin.Coherence, Builtin.Conciseness, Builtin.ResponseRelevance
 
-eval-myagent-XXXXXXXXXX  (judge: openai.gpt-oss-20b-1:0)
+eval-myagent-XXXXXXXXXX  (judge: openai.gpt-oss-20b-1:0)  [1 session(s)]
   Builtin.Helpfulness              avg=0.833  pass=100%  n=1
   Builtin.Coherence                avg=1.000  pass=100%  n=1
   Builtin.Conciseness              avg=1.000  pass=100%  n=1
@@ -201,11 +201,13 @@ That's the full loop: **AgentCore agent → auto OTEL → CloudWatch → `saes e
 reads + scores it.** `out/report.html` is a self-contained report with the
 judge's reasoning per result.
 
-Useful flags (all optional):
+By default `saes eval` scans the **last 7 days** of traces. If you see
+`no sessions found`, the agent hasn't run recently or the session is older —
+widen the window with `--days`:
 
 ```bash
 saes eval myagent-XXXXXXXXXX \
-  --lookback-days 3 \                       # if your session is older than a day
+  --days 30 \                                            # scan the last 30 days
   --evaluators Builtin.Helpfulness,Builtin.Coherence \   # pick your own
   --judge-model gpt-4.1 --judge-base-url https://api.openai.com/v1   # a different judge
 ```
@@ -228,7 +230,8 @@ cd my_agent && AGENTCORE_SUPPRESS_RECOMMENDATION=1 agentcore destroy && cd ..
 
 | Symptom | Fix |
 |---|---|
-| `no sessions scored` | Traces not indexed yet (wait ~90s after invoking), or the session is older than `--lookback-days` — increase it (e.g. `--lookback-days 3`). |
+| `no sessions found` | Traces not indexed yet (wait ~90s after invoking), or the session is older than the window — widen it: `--days 30`. |
+| `log group not found` | The runtime id is wrong, or the agent never emitted traces. Use the bare id (e.g. `myagent-XyZ123`, no `-DEFAULT`). |
 | A judge auth error | Re-run the Step 5 export; the Bedrock token expires (~12h). |
 | Judge probe / scoring fails on a non-Bedrock endpoint | Your endpoint must support tool calling / structured output. Verify with `saes doctor --judge <config>`. |
 | `ModuleNotFoundError: openai` | `pip install openai` (needed for the `openai_compatible` judge). |
