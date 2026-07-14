@@ -37,12 +37,31 @@ class ToolCallRecord:
 
 
 @dataclass
+class Turn:
+    """One reconstructed conversation turn (one AgentCore trace). Pairs the
+    user's prompt with the agent's final answer and the tools used *in that
+    turn*, so multi-turn sessions score turn-by-turn instead of mixing turns."""
+
+    user_prompt: str = ""
+    agent_response: str = ""
+    tool_calls: list[ToolCallRecord] = field(default_factory=list)
+
+    @property
+    def trajectory(self) -> list[str]:
+        return [tc.name for tc in self.tool_calls]
+
+
+@dataclass
 class SessionToolCalls:
     session_id: str
     tool_calls: list[ToolCallRecord] = field(default_factory=list)
     # conversation text recovered from raw spans (for turn synthesis / F10):
     user_prompts: list[str] = field(default_factory=list)
     assistant_texts: list[str] = field(default_factory=list)
+    # per-turn reconstruction (one entry per AgentCore trace, time-ordered).
+    # Empty when no roled text/trace grouping was available (falls back to the
+    # flat fields above). Used to synthesize a faithful multi-turn Session.
+    turns: list[Turn] = field(default_factory=list)
 
     @property
     def trajectory(self) -> list[str]:
@@ -181,13 +200,35 @@ def _iter_role_texts(body: Any):
                 yield role, t
 
 
+def _trace_id_of(rec: dict[str, Any]) -> str | None:
+    return rec.get("traceId") or rec.get("trace_id")
+
+
+def _rec_time(rec: dict[str, Any]) -> int:
+    """Best-effort record timestamp (ns) for ordering turns within a session."""
+    for k in ("timeUnixNano", "observedTimeUnixNano", "startTimeUnixNano"):
+        v = rec.get(k)
+        if v:
+            try:
+                return int(v)
+            except (TypeError, ValueError):
+                pass
+    return 0
+
+
 def extract_session_tool_calls(records: list[dict[str, Any]]) -> list[SessionToolCalls]:
     """Bridge trace_id -> session.id and extract Converse tool calls from all
-    tool-bearing spans. Returns one SessionToolCalls per discovered session."""
+    tool-bearing spans. Returns one SessionToolCalls per discovered session.
+
+    Also reconstructs a **per-turn** view (`SessionToolCalls.turns`): each
+    AgentCore trace is one conversation turn, so grouping by trace_id (ordered by
+    time) pairs each user prompt with the answer + tools of that same turn —
+    essential for faithful multi-turn scoring (a flat last-assistant heuristic
+    mixes turns)."""
     # 1. map trace_id -> session_id from any span that carries a session id
     trace_to_session: dict[str, str] = {}
     for rec in records:
-        tid = rec.get("traceId") or rec.get("trace_id")
+        tid = _trace_id_of(rec)
         sid = _session_id_of(rec)
         if tid and sid and tid not in trace_to_session:
             trace_to_session[tid] = sid
@@ -267,6 +308,11 @@ def extract_session_tool_calls(records: list[dict[str, Any]]) -> list[SessionToo
             if isinstance(txt, str) and txt.strip() and not _is_systemish(txt):
                 heur_texts.setdefault(sid, []).append(txt)
 
+    # 5. PASS 4 — per-turn reconstruction. Each AgentCore trace is one turn;
+    #    group text + tool calls by trace_id, order traces by time, and pair each
+    #    turn's user prompt with that turn's own answer + tools.
+    turns_by_sid = _reconstruct_turns(records, _sid_for)
+
     all_sids = set(order) | set(user_texts) | set(asst_texts) | set(heur_texts)
     result = []
     for sid in all_sids:
@@ -283,8 +329,61 @@ def extract_session_tool_calls(records: list[dict[str, Any]]) -> list[SessionToo
             tool_calls=[calls[sid][i] for i in order.get(sid, [])],
             user_prompts=users,
             assistant_texts=assts,
+            turns=turns_by_sid.get(sid, []),
         ))
     return result
 
 
-__all__ = ["SessionToolCalls", "ToolCallRecord", "extract_session_tool_calls"]
+def _reconstruct_turns(records, sid_for) -> dict[str, list[Turn]]:
+    """Group records by (session, trace), one Turn per trace, ordered by time.
+
+    Within a trace: first non-system user text -> prompt; last assistant text ->
+    answer; toolUse blocks (with results attached) -> that turn's tool calls."""
+    # session -> trace -> {"time", "users", "assts", "tools"(id->rec), "order"}
+    sessions: dict[str, dict[str, dict[str, Any]]] = {}
+    for rec in records:
+        sid = sid_for(rec)
+        tid = _trace_id_of(rec)
+        if not sid or not tid:
+            continue
+        traces = sessions.setdefault(sid, {})
+        tr = traces.setdefault(tid, {"time": _rec_time(rec), "users": [], "assts": [],
+                                     "tools": {}, "order": []})
+        tr["time"] = min(tr["time"] or _rec_time(rec), _rec_time(rec) or tr["time"])
+        for role, txt in _iter_role_texts(rec.get("body")):
+            if _is_systemish(txt):
+                continue
+            (tr["users"] if role == "user" else tr["assts"]).append(txt)
+        for block in _content_blocks(rec.get("body")):
+            if "toolUse" in block:
+                tu = block["toolUse"]
+                cid = tu.get("toolUseId") or f"_{len(tr['order'])}"
+                if cid not in tr["tools"]:
+                    tr["tools"][cid] = ToolCallRecord(
+                        name=tu.get("name", ""), arguments=tu.get("input", {}) or {},
+                        tool_call_id=cid)
+                    tr["order"].append(cid)
+            if "toolResult" in block:
+                trb = block["toolResult"]
+                cid = trb.get("toolUseId")
+                text = next((c["text"] for c in trb.get("content", [])
+                             if isinstance(c, dict) and "text" in c), "")
+                if cid in tr["tools"]:
+                    tr["tools"][cid].result = text
+
+    out: dict[str, list[Turn]] = {}
+    for sid, traces in sessions.items():
+        turns: list[Turn] = []
+        for tid in sorted(traces, key=lambda t: traces[t]["time"]):
+            tr = traces[tid]
+            up = tr["users"][0] if tr["users"] else ""
+            ar = tr["assts"][-1] if tr["assts"] else ""
+            tools = [tr["tools"][c] for c in tr["order"]]
+            if up or ar or tools:
+                turns.append(Turn(user_prompt=up, agent_response=ar, tool_calls=tools))
+        if turns:
+            out[sid] = turns
+    return out
+
+
+__all__ = ["SessionToolCalls", "ToolCallRecord", "Turn", "extract_session_tool_calls"]

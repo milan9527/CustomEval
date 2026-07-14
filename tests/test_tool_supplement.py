@@ -82,6 +82,57 @@ def test_no_tool_calls_but_text_recovered():
     assert out[0].user_prompts == ["what is the capital?"]  # text recovered
 
 
+def test_per_turn_reconstruction_pairs_prompt_with_same_turn_answer():
+    """Multi-turn: each AgentCore trace is one turn. Grouping by trace_id (ordered
+    by time) must pair each turn's prompt with THAT turn's answer + tools — not a
+    flat last-assistant heuristic that mixes turns across the session."""
+    records = [
+        # turn 1 (earlier time) — Tokyo weather
+        {"traceId": "tr1", "timeUnixNano": "100", "attributes": {"session.id": "s"},
+         "body": {"input": {"messages": [{"role": "user", "content": "weather in Tokyo?"}]},
+                  "output": {"messages": [{"role": "assistant", "content": "Tokyo is 22C."}]}}},
+        {"traceId": "tr1", "timeUnixNano": "101", "attributes": {"session.id": "s"},
+         "body": {"content": [{"toolUse": {"toolUseId": "a", "name": "get_weather", "input": {"city": "Tokyo"}}}]}},
+        # turn 2 (later time) — Paris weather. Deliberately out of order in the list.
+        {"traceId": "tr2", "timeUnixNano": "201", "attributes": {"session.id": "s"},
+         "body": {"content": [{"toolUse": {"toolUseId": "b", "name": "get_weather", "input": {"city": "Paris"}}}]}},
+        {"traceId": "tr2", "timeUnixNano": "200", "attributes": {"session.id": "s"},
+         "body": {"input": {"messages": [{"role": "user", "content": "weather in Paris?"}]},
+                  "output": {"messages": [{"role": "assistant", "content": "Paris is 22C."}]}}},
+    ]
+    s = extract_session_tool_calls(records)[0]
+    assert len(s.turns) == 2
+    # ordered by time; each prompt paired with ITS OWN answer (not mixed)
+    assert s.turns[0].user_prompt == "weather in Tokyo?"
+    assert s.turns[0].agent_response == "Tokyo is 22C."
+    assert s.turns[0].trajectory == ["get_weather"]
+    assert s.turns[1].user_prompt == "weather in Paris?"
+    assert s.turns[1].agent_response == "Paris is 22C."   # ← the fix: not "Tokyo is 22C."
+    assert s.turns[1].tool_calls[0].arguments == {"city": "Paris"}
+
+
+def test_supplement_turns_builds_one_agent_span_per_turn():
+    """supplement_turns(turns=[...]) synthesizes a faithful multi-turn Session:
+    one AgentInvocationSpan per turn, each pairing its own prompt + answer."""
+    from strands_evals.types.trace import Session
+
+    from saes.ingest.cloudwatch_task import supplement_turns
+    from saes.ingest.tool_supplement import ToolCallRecord, Turn
+
+    sess = Session(session_id="s", traces=[])
+    ok = supplement_turns(sess, turns=[
+        Turn(user_prompt="weather in Tokyo?", agent_response="Tokyo is 22C.",
+             tool_calls=[ToolCallRecord(name="get_weather", arguments={"city": "Tokyo"}, result="22C")]),
+        Turn(user_prompt="weather in Paris?", agent_response="Paris is 22C.",
+             tool_calls=[ToolCallRecord(name="get_weather", arguments={"city": "Paris"}, result="22C")]),
+    ])
+    assert ok
+    ais = [s for tr in sess.traces for s in tr.spans if type(s).__name__ == "AgentInvocationSpan"]
+    assert len(ais) == 2
+    assert (ais[0].user_prompt, ais[0].agent_response) == ("weather in Tokyo?", "Tokyo is 22C.")
+    assert (ais[1].user_prompt, ais[1].agent_response) == ("weather in Paris?", "Paris is 22C.")
+
+
 def test_recovers_final_answer_from_real_noframework_spans():
     """The no-framework agent's FINAL answer IS in CloudWatch — botocore's Bedrock
     instrumentation captures it as `body.message` (role=assistant) and

@@ -133,72 +133,95 @@ def _synth_tool_spans(tool_calls: Any, sid: str, now: Any) -> list[Any]:
     return spans
 
 
-def supplement_turns(session: Any, user_prompt: str = "", agent_response: str = "",
-                     tool_calls: Any = None) -> bool:
-    """Synthesize an AgentInvocationSpan (and, if `tool_calls` are given, matching
-    ToolExecutionSpans) so TRACE/SESSION/TOOL-level evaluators can run when the
-    native mapper produced none (common for non-Strands agents).
+def _tool_configs(tool_spans: list[Any]) -> list[Any]:
+    """Distinct-by-name ToolConfigs from synthesized tool spans (names only —
+    raw spans carry no tool descriptions/schemas)."""
+    from strands_evals.types.trace import ToolConfig
 
-    Turn text comes from (in priority): explicit `user_prompt`/`agent_response`
-    args (recovered from raw CloudWatch spans by the caller), else the session's
-    own InferenceSpan messages. `tool_calls` (recovered ToolCallRecords) become
-    native ToolExecutionSpans and populate the agent span's `available_tools`.
-    Works even on an empty Session (creates a trace). Returns True if a turn was
-    synthesized. Best-effort; never raises.
+    out, seen = [], set()
+    for ts in tool_spans:
+        n = ts.tool_call.name
+        if n not in seen:
+            seen.add(n)
+            try:
+                out.append(ToolConfig(name=n))
+            except Exception:  # noqa: BLE001
+                pass
+    return out
+
+
+def supplement_turns(session: Any, user_prompt: str = "", agent_response: str = "",
+                     tool_calls: Any = None, turns: Any = None) -> bool:
+    """Synthesize AgentInvocationSpan(s) (+ matching ToolExecutionSpans) so
+    TRACE/SESSION/TOOL-level evaluators can run when the native mapper produced
+    none (common for non-Strands agents).
+
+    Preferred path: pass `turns` (a list of reconstructed Turn objects, one per
+    AgentCore trace). Each becomes its own Trace with an AgentInvocationSpan
+    pairing that turn's prompt + answer + tools — a faithful **multi-turn**
+    Session. Falls back to a single `user_prompt`/`agent_response`(+`tool_calls`)
+    turn, else lifts text from the session's own InferenceSpan messages. Works on
+    an empty Session (creates traces). Returns True if anything was synthesized.
+    Best-effort; never raises.
     """
     try:
         from datetime import datetime, timezone
 
-        from strands_evals.types.trace import (
-            AgentInvocationSpan,
-            SpanInfo,
-            ToolConfig,
-            Trace,
-        )
+        from strands_evals.types.trace import AgentInvocationSpan, SpanInfo, Trace
 
-        # if no explicit text, try to lift it from InferenceSpan messages
-        if not (user_prompt or agent_response):
-            for trace in getattr(session, "traces", None) or []:
-                for span in getattr(trace, "spans", []) or []:
-                    for m in getattr(span, "messages", None) or []:
-                        role = str(getattr(m, "role", "")).lower()
-                        txt = _msg_text(m)
-                        if "user" in role and not user_prompt and txt:
-                            user_prompt = txt
-                        if "assistant" in role and txt:
-                            agent_response = txt
-        if not (user_prompt or agent_response):
+        base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        sid = getattr(session, "session_id", "s")
+
+        # --- build the list of (turn) span-groups to add ---------------------
+        new_traces: list[Any] = []
+
+        def _make_turn_trace(idx: int, up: str, ar: str, tcs: Any) -> Any:
+            tool_spans = _synth_tool_spans(tcs, sid, base)
+            agent_span = AgentInvocationSpan(
+                span_info=SpanInfo(trace_id=f"saes-synth-{idx}", span_id=f"saes-synth-{idx}",
+                                   session_id=sid, start_time=base, end_time=base),
+                user_prompt=up or "(unknown)", agent_response=ar or "(unknown)",
+                available_tools=_tool_configs(tool_spans), system_prompt="",
+            )
+            return Trace(spans=[agent_span, *tool_spans],
+                         trace_id=f"saes-synth-{idx}", session_id=sid)
+
+        if turns:
+            for i, t in enumerate(turns):
+                up = getattr(t, "user_prompt", "") or ""
+                ar = getattr(t, "agent_response", "") or ""
+                tcs = getattr(t, "tool_calls", None)
+                if up or ar or tcs:
+                    new_traces.append(_make_turn_trace(i, up, ar, tcs))
+        else:
+            # single-turn fallback: explicit args, else lift from InferenceSpans
+            if not (user_prompt or agent_response):
+                for trace in getattr(session, "traces", None) or []:
+                    for span in getattr(trace, "spans", []) or []:
+                        for m in getattr(span, "messages", None) or []:
+                            role = str(getattr(m, "role", "")).lower()
+                            txt = _msg_text(m)
+                            if "user" in role and not user_prompt and txt:
+                                user_prompt = txt
+                            if "assistant" in role and txt:
+                                agent_response = txt
+            if not (user_prompt or agent_response):
+                return False
+            new_traces.append(_make_turn_trace(0, user_prompt, agent_response, tool_calls))
+
+        if not new_traces:
             return False
 
-        now = datetime(2026, 1, 1, tzinfo=timezone.utc)
-        sid = getattr(session, "session_id", "s")
-        tool_spans = _synth_tool_spans(tool_calls, sid, now)
-        # available_tools: distinct tool names seen (names are what the tool-level
-        # evaluators reason over; we lack descriptions/schemas from raw spans).
-        available = []
-        seen: set[str] = set()
-        for ts in tool_spans:
-            n = ts.tool_call.name
-            if n not in seen:
-                seen.add(n)
-                try:
-                    available.append(ToolConfig(name=n))
-                except Exception:  # noqa: BLE001
-                    pass
-        agent_span = AgentInvocationSpan(
-            span_info=SpanInfo(trace_id="saes-synth", span_id="saes-synth",
-                               session_id=sid, start_time=now, end_time=now),
-            user_prompt=user_prompt or "(unknown)",
-            agent_response=agent_response or "(unknown)",
-            available_tools=available, system_prompt="",
-        )
-        new_spans = [agent_span, *tool_spans]
-        traces = getattr(session, "traces", None)
-        if traces:
-            traces[0].spans.extend(new_spans)
-        else:  # empty Session (native read had raised) — create a trace
+        existing = getattr(session, "traces", None)
+        if existing:
+            # append synthesized turns' spans into the first existing trace so the
+            # extractor sees them (single-trace sessions), but keep multi-turn
+            # ordering by adding extra traces for turns beyond the first.
+            existing[0].spans.extend(new_traces[0].spans)
+            existing.extend(new_traces[1:])
+        else:
             try:
-                session.traces = [Trace(spans=new_spans, trace_id="saes-synth", session_id=sid)]
+                session.traces = new_traces
             except Exception:  # noqa: BLE001
                 return False
         return True
@@ -273,6 +296,9 @@ def build_supplemented_task(provider: Any, cw_cfg: CloudWatchSource):
         #     calls so the two TOOL-level LLM evaluators can run too (SPEC F12) —
         #     but only when the native read produced no tool spans of its own.
         if need_turn:
+            # Prefer per-turn reconstruction (faithful multi-turn); fall back to
+            # a single turn from the flat recovered text + task output.
+            turns = extracted.turns if extracted else None
             up = extracted.first_user_prompt if extracted else ""
             ar = extracted.last_assistant_text if extracted else ""
             # the agent's final answer is also on the task output
@@ -280,11 +306,12 @@ def build_supplemented_task(provider: Any, cw_cfg: CloudWatchSource):
                 ar = str(out["output"])
             tool_calls = extracted.tool_calls if (extracted and need_tools) else None
             if supplement_turns(session, user_prompt=up, agent_response=ar,
-                                tool_calls=tool_calls):
-                _log.info("session %s: synthesized agent turn%s (enables trace/"
-                          "session%s evaluators)", sid,
-                          f" + {len(tool_calls)} tool span(s)" if tool_calls else "",
-                          "/tool-level" if tool_calls else "-level")
+                                tool_calls=tool_calls, turns=turns):
+                detail = (f"{len(turns)} turn(s)" if turns
+                          else "1 turn" + (f" + {len(tool_calls)} tool span(s)"
+                                           if tool_calls else ""))
+                _log.info("session %s: synthesized %s (enables trace/session/"
+                          "tool-level evaluators)", sid, detail)
             else:
                 _log.info("session %s: could not recover a turn; trajectory-level only", sid)
         return out
