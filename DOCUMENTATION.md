@@ -272,7 +272,7 @@ Bedrock (uses your AWS credentials, no external API key):
 
 ```bash
 pip install aws-bedrock-token-generator
-export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region=\"us-east-1\"))')"
+export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region="us-east-1"))')"
 
 cat > try.yaml <<'YAML'
 name: try-it
@@ -1218,7 +1218,7 @@ via `BEDROCK_MODEL_ID`:
 
 ```bash
 cd /home/ec2-user/saes_run
-export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region=\"us-east-1\"))')"
+export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region="us-east-1"))')"
 export BEDROCK_MODEL_ID="openai.gpt-oss-20b-1:0"
 python framework_matrix.py       # 4 frameworks × 15 evaluators over real CloudWatch traces (~10 min)
 ```

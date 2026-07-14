@@ -36,7 +36,7 @@ pip install bedrock-agentcore bedrock-agentcore-starter-toolkit strands-agents \
 Confirm the CLI is available:
 
 ```bash
-saes --help          # ⇒ Commands: run | doctor | init | serve
+saes --help          # ⇒ Commands: eval | run | doctor | init | serve
 ```
 
 ### Step 2 — Create the agent (3 small files in a new folder)
@@ -167,7 +167,7 @@ OpenAI-compatible endpoint, authenticated with a short-term token minted from
 your own AWS credentials (no external API key):
 
 ```bash
-export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region=\"us-east-1\"))')"
+export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region="us-east-1"))')"
 ```
 
 > The token expires in ~12h; just re-run this line if you get an auth error.

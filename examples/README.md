@@ -61,5 +61,5 @@ The runs used an editable SAES install and a Bedrock OpenAI-compatible judge:
 
 ```bash
 pip install -e '.[dev]' openai aws-bedrock-token-generator
-export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region=\"us-east-1\"))')"
+export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region="us-east-1"))')"
 ```

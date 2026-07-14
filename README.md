@@ -18,7 +18,7 @@ python3.12 -m venv .venv && source .venv/bin/activate    # activate FIRST
 pip install -e '.[dev]' openai aws-bedrock-token-generator
 
 # judge = Amazon Bedrock, via your AWS credentials — no external key
-export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region=\"us-east-1\"))')"
+export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region="us-east-1"))')"
 
 saes eval myagent-XXXXXXXXXX --html out/report.html      # ← your AgentCore Runtime id
 #   scans the last 7 days by default; add --days 30 for older sessions
