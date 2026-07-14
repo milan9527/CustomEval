@@ -45,6 +45,12 @@ The agent is a normal Strands agent with two tools. AgentCore's runtime is
 OTEL-instrumented, so once deployed it exports traces to CloudWatch on its own —
 you add **no** telemetry code.
 
+> Building in **LangGraph / CrewAI / no framework** instead? The agent works the
+> same way; what differs is the OTEL your framework emits. See
+> [DOCUMENTATION.md §7.4](DOCUMENTATION.md#74-what-your-agent-must-emit--the-otel-contract-by-framework)
+> for the per-framework contract (scope name, required fields, per-evaluator
+> needs) — then `saes doctor` to verify before you rely on scores.
+
 ```bash
 mkdir -p my_agent && cd my_agent
 ```

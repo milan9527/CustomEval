@@ -24,6 +24,7 @@ analysis of the real results.
 5. [Configuration reference](#5-configuration-reference)
 6. [The evaluator catalog](#6-the-evaluator-catalog)
 7. [Framework support: how any framework reaches full coverage](#7-framework-support-how-any-framework-reaches-full-coverage)
+   — incl. [§7.4 what YOUR agent must emit (the OTEL contract, by framework)](#74-what-your-agent-must-emit--the-otel-contract-by-framework)
 8. [Evaluation scenarios & results analysis](#8-evaluation-scenarios--results-analysis)
    — incl. [§8.5 the evaluation, step by step](#85-the-evaluation-step-by-step)
 9. [Online / production evaluation](#9-online--production-evaluation)
@@ -663,6 +664,97 @@ surface. One fidelity note: for non-Strands agents, synthesized `available_tools
 carry tool *names* only (raw spans don't include tool descriptions / JSON
 schemas), so the tool-level evaluators reason over names + observed calls rather
 than full tool specs.
+
+### 7.4 What YOUR agent must emit — the OTEL contract, by framework
+
+You do not write mapping code, but your traces must carry a few things for SAES
+(and the native `strands-agents-evals` mappers underneath) to reconstruct an
+evaluable session. This is the checklist to follow when building an agent in each
+framework. **Always verify with `saes doctor --data-source <dump>` before you
+rely on the scores** — it prints exactly which of these fields are present.
+
+#### The universal contract (every framework)
+
+1. **A `session.id`** on the spans (accepted keys: `session.id`,
+   `gen_ai.session.id`, or `session_id`). This is how spans group into a
+   conversation. On AgentCore Runtime you get it by passing `--session-id` to
+   `agentcore invoke`; reused across turns → a multi-turn session.
+2. **Prompt/input text** — any of: `gen_ai.prompt` (or indexed
+   `gen_ai.prompt.N.content`), `gen_ai.input.messages`, `input.value`,
+   `llm.input_messages.*`, or `traceloop.entity.input`.
+3. **Completion/output text** — any of: `gen_ai.completion` (or
+   `gen_ai.completion.N.content`), `gen_ai.output.messages`, `output.value`,
+   `llm.output_messages.*`, or `traceloop.entity.output`.
+4. **A `scope.name`** on each span — this selects the mapper (see below).
+5. **`traceId` + `spanId`** — standard OTEL; one **trace per turn** (SAES groups
+   multi-turn sessions by trace and orders by span time).
+
+Minimum to reconstruct *anything*: `session.id` **plus** prompt **or** completion.
+Tool-level and trace-level evaluators need more (below).
+
+#### The scope name decides which mapper runs
+
+The native mapper is chosen by each span's `scope.name`. Only three values are
+recognized natively:
+
+| `scope.name` | Native mapper | Typical source |
+|---|---|---|
+| `strands.telemetry.tracer` | Strands mapper (full: agent + tool spans) | Strands SDK |
+| `opentelemetry.instrumentation.langchain` | LangChain-OTEL mapper | LangChain/LangGraph via OTEL instrumentor |
+| `openinference.instrumentation.langchain` | OpenInference mapper | OpenInference LangChain instrumentor |
+| anything else (`…crewai`, `botocore…`, custom) | **none matches** → native read may raise | CrewAI, bare boto3, custom |
+
+**If your scope isn't one of the three, you are not broken** — SAES's supplement
+(§7.2) recovers the trajectory + turns from the raw Bedrock Converse spans
+(`botocore` `toolUse`/`toolResult`, roled `body.message`). You just rely on the
+supplement rather than the native mapper. That is exactly how CrewAI and the
+no-framework agent reach full coverage.
+
+#### To unlock each evaluator level
+
+- **Trace-level** (Helpfulness, Correctness, Coherence, …) needs a reconstructed
+  **turn**: a user prompt + the agent's **final answer**. Emit both (contract
+  items 2–3). Strands emits an `AgentInvocationSpan` natively; for other
+  frameworks SAES synthesizes it from the recovered prompt+answer.
+- **Tool-level** (ToolSelectionAccuracy, ToolParameterAccuracy) needs the
+  **tool call** — name, arguments, and result. Strands emits a
+  `ToolExecutionSpan`; other frameworks just need their Bedrock `toolUse`/
+  `toolResult` Converse blocks in the spans (SAES synthesizes the tool span). The
+  arguments must be the real tool input for ToolParameterAccuracy to be meaningful.
+- **Trajectory match** (deterministic) needs the ordered tool-call names, which
+  come from the same `toolUse` blocks — plus an `expectedTrajectory` in ground
+  truth.
+
+#### Per-framework notes (from real deployments)
+
+- **Strands** — nothing to do. Native OTEL emits `AgentInvocationSpan` +
+  `ToolExecutionSpan` + `InferenceSpan`; all 15 evaluators work, multi-turn
+  included. The reference path.
+- **LangGraph** — enable OpenInference (`LangChainInstrumentor().instrument()`)
+  or the OTEL LangChain instrumentor so `scope.name` is one of the two LangChain
+  values. Tool calls flow through the Bedrock Converse spans → SAES recovers
+  them. (With `ChatBedrockConverse` on an inference-profile ARN, set
+  `provider="anthropic"`.)
+- **CrewAI** — its scope is `openinference.instrumentation.crewai`, which the
+  native mapper does **not** match, so the native read raises — expected. SAES
+  recovers the trajectory + answer from the Converse spans. Current gap: CrewAI's
+  per-turn *user prompt* isn't always in the shape the recovery reads, so
+  ResponseRelevance can miss on it (GoalSuccessRate / tools still work).
+- **No framework (bare boto3)** — no instrumentation to add: AgentCore's botocore
+  Bedrock instrumentation already captures the Converse request/response
+  (including the final answer as `body.message`). SAES reconstructs the turn +
+  tools from those. Just make sure your Bedrock calls go through the instrumented
+  client (they do by default on AgentCore Runtime).
+
+#### The one habit
+
+```bash
+saes doctor --data-source your_dump.jsonl
+```
+
+A `✓` on session id + prompt + completion means sessions reconstruct; a `✗` tells
+you exactly which attribute your instrumentation is missing — fix it at the source
+before trusting scores. (§4.0 has a sample of the output.)
 
 ---
 
