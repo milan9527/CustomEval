@@ -70,7 +70,7 @@ the trace format.
 
 M1 (core offline evaluation), M2 (CloudWatch ingestion, EMF/JSON results, full
 evaluator catalog), and M3 (online worker, Lambda code evaluators, dashboard/
-alarms CDK) are complete. **186 unit tests passing** (+ CDK synth tests). Verified
+alarms CDK) are complete. **199 unit tests passing** (+ CDK synth tests). Verified
 end-to-end with real Bedrock judges (offline and online), against a real deployed
 AgentCore Runtime agent, and across four frameworks (Strands, LangGraph, CrewAI,
 no-framework). Apache-2.0. Not yet released.
@@ -639,11 +639,17 @@ OTEL each framework emitted:
   (role=assistant, `finish_reason=end_turn`) and `body.{input,output}.messages`.
   *The final answer is captured by AgentCore's botocore instrumentation; the fix
   was reading it correctly, not changing the agent.*
-- **Turn + tool-span synthesis** (`cloudwatch_task.supplement_turns`): builds a
-  native `AgentInvocationSpan` (with `available_tools`) and one
-  `ToolExecutionSpan` per recovered tool call — the exact shapes the native
-  `TraceExtractor` consumes at TRACE / SESSION / TOOL level. This is what lets the
-  two tool-level LLM evaluators run for non-Strands agents.
+- **Turn + tool-span synthesis** (`cloudwatch_task.supplement_turns`): builds
+  native `AgentInvocationSpan`s (with `available_tools`) and `ToolExecutionSpan`s
+  from the recovered turns — the exact shapes the native `TraceExtractor` consumes
+  at TRACE / SESSION / TOOL level. This is what lets the two tool-level LLM
+  evaluators run for non-Strands agents.
+- **Per-turn reconstruction** (`tool_supplement._reconstruct_turns`): for a
+  *multi-turn* session it groups recovered text + tools by `trace_id` (one
+  AgentCore trace = one turn), orders turns by time, and synthesizes **one
+  `AgentInvocationSpan` per turn** — so each turn's prompt is paired with that
+  turn's own answer, not a mixed last-answer. Without this, a 3-turn session
+  mispairs (e.g. turn-3 "Paris?" with a turn-1 "Tokyo" answer) and scores wrong.
 
 All supplements are best-effort and never raise into a run; they apply
 automatically in both `saes run` and `saes serve`.
@@ -1036,6 +1042,8 @@ real end-to-end runs is what surfaced the bugs.
 | F10 | non-Strands LLM evaluators returned None (no agent span) | synthesize `AgentInvocationSpan` from recovered turn text |
 | F11→ | **wrongly** concluded the final answer "wasn't in CloudWatch" and needed an agent-side fix | it *was* there (botocore captured it); fixed **role-aware** extraction in SAES ingestion — lifted no-framework/CrewAI 1/15 → 13/15 |
 | F12 | the last 2 tool-level LLM evaluators still couldn't run for non-Strands | synthesize native `ToolExecutionSpan`s + `available_tools` from recovered tool calls → 13/15 → 15/15 |
+| F13 | non-Strands **multi-turn** sessions mispaired turns (turn-3 prompt with turn-1 answer) → wrong 0.0 scores | reconstruct one turn per `trace_id`, time-ordered; one `AgentInvocationSpan` per turn (verified: LangGraph 3-turn 0.0→0.833/1.0…) |
+| F14 | mapper WARNING spam leaked on multi-**session** eval despite quieting | the per-task quieter raced across concurrent `to_thread` tasks; made it refcounted + lock-guarded |
 
 > **Lesson from F9/F11:** `scored 1/1` (a session was processed) is not the same
 > as a non-zero score, and "the data isn't there" is a claim to verify against
@@ -1061,7 +1069,7 @@ real end-to-end runs is what surfaced the bugs.
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate
 pip install -e '.[dev]' openai
-pytest -q                    # 186 passing
+pytest -q                    # 199 passing
 ruff check src/ tests/       # clean
 ```
 
