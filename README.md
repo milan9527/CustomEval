@@ -8,23 +8,41 @@ Open-source evaluation for AI agents, built with the [Strands Agents SDK](https:
 
 ## Quick start
 
+Already have an agent on **AgentCore Runtime**? Evaluate it with one command —
+just the runtime id. No YAML, no ground truth, no trace plumbing. Requires
+**Python 3.12**:
+
 ```bash
-python3.12 -m venv .venv && source .venv/bin/activate   # activate FIRST
-pip install -e '.[dev]' openai
-saes init --agent-type rag --out eval.yaml   # scaffold a config
-saes doctor --data-source traces.jsonl       # check your OTEL traces
-saes doctor --judge eval.yaml                # verify your judge endpoint
-saes run -c eval.yaml --html out/report.html # evaluate (exit non-zero if a gate fails)
+git clone https://github.com/milan9527/CustomEval.git && cd CustomEval
+python3.12 -m venv .venv && source .venv/bin/activate    # activate FIRST
+pip install -e '.[dev]' openai aws-bedrock-token-generator
+
+# judge = Amazon Bedrock, via your AWS credentials — no external key
+export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region=\"us-east-1\"))')"
+
+saes eval myagent-XXXXXXXXXX --html out/report.html      # ← your AgentCore Runtime id
+#   evaluating /aws/bedrock-agentcore/runtimes/myagent-XXXXXXXXXX-DEFAULT
+#     Builtin.Helpfulness        avg=0.833  pass=100%  n=1
+#     Builtin.Coherence          avg=1.000  pass=100%  n=1
+#     ...
 ```
+
+`saes eval` derives the runtime's CloudWatch log group, discovers its sessions,
+and scores them with reference-free evaluators. Full start-to-finish example
+(build agent → deploy → evaluate) in **[WALKTHROUGH.md](WALKTHROUGH.md)**.
+
+No agent yet? Score a bundled trace sample in 1 minute — see
+[DOCUMENTATION.md §4.0](DOCUMENTATION.md#40-i-just-cloned-this-repo-and-i-have-my-own-agent--where-do-i-start).
 
 ## Documentation
 
-**Everything is in one place: [DOCUMENTATION.md](DOCUMENTATION.md)** — project
-description, architecture, end-to-end usage (from building an agent to a scored
-report), configuration, the evaluator catalog, per-framework support, evaluation
-scenarios + results analysis, online evaluation, and the verification log.
-
-The full technical specification remains in [SPEC.md](SPEC.md).
+- **[WALKTHROUGH.md](WALKTHROUGH.md)** — the complete linear example: clone →
+  build agent → deploy to AgentCore → CloudWatch → evaluate. **Start here.**
+- **[DOCUMENTATION.md](DOCUMENTATION.md)** — the full reference in one place:
+  project description, architecture, all usage paths, configuration, the
+  evaluator catalog, per-framework support, evaluation scenarios + results
+  analysis, online evaluation, and the verification log.
+- **[SPEC.md](SPEC.md)** — the full technical specification.
 
 ## Status
 

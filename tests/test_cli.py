@@ -162,6 +162,68 @@ async def _async(value):
     return value
 
 
+# ---- eval (one-liner: just a runtime id) ------------------------------------
+
+def test_runtime_log_group_mapping():
+    from saes.cli import _runtime_log_group
+
+    assert _runtime_log_group("myagent-ABC") == \
+        "/aws/bedrock-agentcore/runtimes/myagent-ABC-DEFAULT"
+    # already has the endpoint suffix -> not doubled
+    assert _runtime_log_group("myagent-ABC-DEFAULT") == \
+        "/aws/bedrock-agentcore/runtimes/myagent-ABC-DEFAULT"
+    # full log-group path -> passed through unchanged
+    full = "/aws/bedrock-agentcore/runtimes/x-DEFAULT"
+    assert _runtime_log_group(full) == full
+
+
+def test_eval_builds_config_from_runtime_id(tmp_path, monkeypatch):
+    """`saes eval <runtime>` needs no YAML/ground truth: it derives the log group,
+    defaults to reference-free evaluators, and runs run_on_demand."""
+    captured = {}
+
+    def _fake_run(cfg):
+        captured["cfg"] = cfg
+        return _async(_fake_run_result(0.9))
+
+    monkeypatch.setattr("saes.run.run_on_demand", _fake_run)
+    result = runner.invoke(app, ["eval", "myagent-XyZ", "--lookback-days", "2"])
+    assert result.exit_code == 0, result.output
+    cfg = captured["cfg"]
+    # the runtime id became the CloudWatch log group, no ground truth required
+    assert cfg.data_source.type == "cloudwatch"
+    assert cfg.data_source.cloudwatch.log_group_names == [
+        "/aws/bedrock-agentcore/runtimes/myagent-XyZ-DEFAULT"
+    ]
+    assert cfg.data_source.cloudwatch.lookback_days == 2
+    assert cfg.ground_truth is None
+    assert cfg.evaluators  # defaults populated
+    assert "Builtin.Helpfulness" in result.output
+
+
+def test_eval_reports_when_no_sessions(tmp_path, monkeypatch):
+    """No traces in the window -> a clear message, not a crash."""
+    monkeypatch.setattr(
+        "saes.run.run_on_demand",
+        lambda cfg: _async(_empty_run_result()),
+    )
+    result = runner.invoke(app, ["eval", "myagent-XyZ"])
+    assert result.exit_code == 0, result.output
+    assert "no sessions scored" in result.output
+
+
+def _empty_run_result():
+    class _Report:
+        detailed_results = []
+        cases = []
+        overall_score = 0.0
+
+    return RunResult(
+        config_name="eval-x", judge_model="m", report=_Report(),
+        evaluator_ids=[], session_ids=[], aggregates={},
+    )
+
+
 # ---- serve (online worker, --once, no AWS) ----------------------------------
 
 def _write_online_config(tmp_path):

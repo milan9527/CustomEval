@@ -162,7 +162,7 @@ src/saes/
 │  ├─ worker.py     #   cycle: discover→track→sample→rate-cap→score→emit
 │  ├─ scoring.py    #   wires the worker to the native run pipeline + sink
 │  └─ lambda_evaluator.py# code evaluator as a Lambda handler (AgentCore parity)
-└─ cli.py           # run | doctor | init | serve
+└─ cli.py           # eval | run | doctor | init | serve
 
 cdk/                # optional infra: dashboard + alarms + least-privilege worker IAM
 ```
@@ -229,76 +229,145 @@ This is the whole journey. Follow it top to bottom for a first working evaluatio
 
 ### 4.0 "I just cloned this repo and I have my own agent — where do I start?"
 
+> **Want the single complete example, start to finish?** [WALKTHROUGH.md](WALKTHROUGH.md)
+> is one linear path — clone → build an agent → deploy to AgentCore Runtime →
+> traces to CloudWatch → SAES scores them — with no jumps and every command's
+> real output. This section is the shorter "which path fits me" overview and the
+> offline / try-it-now options.
+
 You don't modify your agent and you don't touch SAES's source. SAES is a tool you
-point at the traces your agent *already* produces. The whole adoption is: install
-the CLI → get your traces somewhere SAES can read → write one small YAML → run.
+point at the traces your agent *already* produces: install the CLI → get your
+traces somewhere SAES can read → write one small YAML → run.
 
-**First, install the CLI (same for everyone):**
+Every command below was run from a clean clone; the exact output is shown so you
+know what "working" looks like.
 
-```bash
-git clone <this-repo> && cd eval
-python3.12 -m venv .venv && source .venv/bin/activate      # activate FIRST
-pip install -e '.[dev]' openai                             # installs the `saes` command
-saes --help                                                # run | doctor | init | serve
-```
+#### Step 1 — Install (same for everyone)
 
-**Then pick your path by what you have today:**
-
-| Your situation | Data source | Do this |
-|---|---|---|
-| Agent runs on **AgentCore Runtime** (Strands or any framework) | `cloudwatch` | Traces already export to CloudWatch. Point `dataSource` at the log group. → path A |
-| Agent runs **elsewhere** but you can export an OTEL/OTLP dump | `otlp_file` | Save spans to a local `traces.jsonl`. → path B |
-| Agent runs elsewhere and sends OTEL to **your own CloudWatch** (ADOT collector) | `cloudwatch` | Same as path A, your log group. |
-| You just want to **try it** with no agent yet | `otlp_file` | Use a sample dump (e.g. `/home/ec2-user/saes_run/traces.jsonl`) to see a real scored report. |
-
-You do **not** need Strands, and you do **not** need to add any SAES-specific
-telemetry — SAES's ingestion adapts to whatever standard OTEL your framework emits
-(§7). The only contract is "spans grouped by a `session.id`."
-
-**Path A — agent on CloudWatch (production / AgentCore):**
+**Prerequisite: Python 3.12** (the venv must use it — a system `python3` that is
+3.9/3.10 will still install but 3.12 is what's verified). Check with `python3.12
+--version` first; install it if missing (`sudo dnf install python3.12` /
+`apt install python3.12` / `brew install python@3.12`).
 
 ```bash
-saes init --agent-type tool-heavy --out eval.yaml     # scaffold; then edit dataSource → cloudwatch
-export SAES_JUDGE_API_KEY=...                          # your judge key (or a Bedrock token, §5.2)
-saes doctor --judge eval.yaml                          # verify the judge qualifies
-saes run -c eval.yaml --html out/report.html           # one-shot scored report
-#   or, for live monitoring:  saes serve -c eval.yaml --once
+git clone https://github.com/milan9527/CustomEval.git
+cd CustomEval
+python3.12 -m venv .venv
+source .venv/bin/activate                 # ← activate FIRST; run everything below inside it
+pip install --upgrade pip
+pip install -e '.[dev]' openai            # installs the `saes` command + all deps
+saes --help                               # ⇒ Commands: eval | run | doctor | init | serve
 ```
 
-`eval.yaml` for path A points at your log group:
+> If `pip install` fails with `No matching distribution found for
+> strands-agents`, you're not in the activated venv, or your pip points at a
+> private index — activate first, or force public PyPI with
+> `--index-url https://pypi.org/simple/`.
 
-```yaml
+#### Step 2 — Prove it runs, using a trace sample bundled in the repo (~1 min)
+
+Before wiring your own agent, confirm the whole chain works. The repo ships a real
+trace fixture you can score immediately. You only need a judge — here, Amazon
+Bedrock (uses your AWS credentials, no external API key):
+
+```bash
+pip install aws-bedrock-token-generator
+export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region=\"us-east-1\"))')"
+
+cat > try.yaml <<'YAML'
+name: try-it
+mode: on_demand
 dataSource:
-  type: cloudwatch
-  cloudwatch:
-    log_group_names: ["/aws/bedrock-agentcore/runtimes/<your-runtime>-DEFAULT"]
-    region: us-east-1
-    lookback_days: 1
+  type: otlp_file
+  path: tests/fixtures/langgraph_session.jsonl   # ← a real sample that ships with the repo
+judge:
+  provider: openai_compatible
+  model: "openai.gpt-oss-20b-1:0"
+  base_url: "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1"
+  api_key_env: SAES_JUDGE_API_KEY
+evaluators: [Builtin.Helpfulness]
+resultsSink:
+  local: { html_report: ./out/report.html }
+YAML
+
+saes doctor --data-source tests/fixtures/langgraph_session.jsonl   # ⇒ OK — 1 session(s) reconstructed
+saes doctor --judge try.yaml                                       # ⇒ ✓ structured output confirmed via tool calling
+saes run -c try.yaml --json out/results.json --html out/report.html
 ```
 
-**Path B — local trace dump (dev / CI, no AWS trace store):**
+Expected final output (verified):
+
+```
+try-it  (judge: openai.gpt-oss-20b-1:0)
+  Builtin.Helpfulness              avg=0.833  pass=100%  n=1
+
+JSON  → out/results.json
+HTML  → out/report.html
+```
+
+If you see that, everything works and `out/report.html` has the judge's reasoning.
+Now point it at your own agent.
+
+> No AWS at all? Use any OpenAI-compatible endpoint that supports tool calling in
+> the `judge` block instead (set `base_url`/`model` and put the key in
+> `SAES_JUDGE_API_KEY`). A text-only endpoint won't work — `saes doctor --judge`
+> tells you up front.
+
+#### Step 3 — Point it at YOUR agent's traces (pick your path)
+
+You do **not** need Strands and you do **not** add any SAES-specific telemetry —
+SAES's ingestion adapts to whatever standard OTEL your framework emits (§7). The
+only contract is "spans grouped by a `session.id`." Pick by what you have:
+
+**Path A — your agent is on AgentCore Runtime** (traces auto-export to CloudWatch).
+Just give `saes eval` the runtime id — it derives the log group, discovers the
+sessions, and scores them. No YAML, no ground truth:
 
 ```bash
-saes init --agent-type rag --out eval.yaml            # scaffold; dataSource defaults to otlp_file
-saes doctor --data-source traces.jsonl                # ← confirm your dump reconstructs sessions
-export SAES_JUDGE_API_KEY=...
-saes doctor --judge eval.yaml
-saes run -c eval.yaml --html out/report.html
+saes eval <your-runtime-id> --html out/report.html
+#   e.g.  saes eval myagent-XyZ123 --lookback-days 3
 ```
 
-`eval.yaml` for path B points at the file:
+That's the whole thing for AgentCore. (For expected-answer / trajectory
+evaluators or a CI gate, write a full config and use `saes run` / `saes serve` —
+§5, §11. To point at your own non-AgentCore CloudWatch log group, use a config
+with `dataSource.type: cloudwatch` and `log_group_names`.)
+
+**Path B — you can export a local OTEL/OTLP dump** (dev / CI, no trace store).
+Save your spans to a JSONL file (one span record per line) and:
 
 ```yaml
 dataSource:
   type: otlp_file
-  path: ./traces.jsonl
+  path: ./my_traces.jsonl
 ```
 
-**The one thing to check before you rely on it:** run `saes doctor` first (against
-your dump or, for CloudWatch, spot-check that `discover_session_ids` finds your
-session — §8.5 Step 1). It reports whether your traces reconstruct into evaluable
-sessions and which fields are present, so you catch instrumentation gaps *before*
-a run rather than getting empty scores.
+```bash
+saes doctor --data-source ./my_traces.jsonl      # ← ALWAYS run this first (see below)
+saes run   -c try.yaml --html out/report.html
+```
+
+#### The one habit that saves you: `saes doctor` first
+
+Before trusting scores, run `saes doctor --data-source <your dump>` (or, for
+CloudWatch, confirm a session is discovered — §8.5 Step 1). It prints per-field
+coverage and whether your traces reconstruct into **evaluable** sessions:
+
+```
+spans read: 4
+field coverage:
+  ✓ session id            4/4
+  ✓ prompt / input        4/4
+  ✓ completion / output   4/4
+  ✗ tool name             0/4   (expected if this agent uses no tools)
+OK — 2 session(s) reconstructed
+```
+
+A `✗` on session id / prompt / completion means your instrumentation is missing
+those GenAI attributes — fix at the source, or you'll get empty scores (`n=0`).
+Note: a Strands-scope **local dump** doesn't round-trip from a file (use the
+CloudWatch source or in-memory for Strands); CloudWatch / OpenInference /
+LangChain-OTEL dumps work from files. See §10 (F4).
 
 The rest of §4 is the same journey in full detail; §5 is the config reference,
 §8.5 is the exact pipeline each run executes.
@@ -634,21 +703,23 @@ Prompts: "What's the weather in Tokyo?"       -> get_weather(Tokyo)
 
 Real AgentCore CloudWatch traces, real Bedrock OpenAI-compatible judge
 (`openai.gpt-oss-20b-1:0`), via `saes serve`'s supplemented CloudWatch task.
+The grid below is a **verbatim re-run** (`framework_matrix.py`, saved to
+`FRAMEWORK_MATRIX_OUTPUT.txt`):
 
 | Evaluator | strands | noframe | langgraph | crewai |
 |---|---|---|---|---|
-| Helpfulness | 0.833 | 0.833 | 0.667 | 0.833 |
+| Helpfulness | 0.833 | 0.667 | 0.833 | 0.833 |
 | Correctness | 1.000 | 1.000 | 1.000 | 1.000 |
 | Coherence | 1.000 | 1.000 | 1.000 | 1.000 |
-| Conciseness | 1.000 | 1.000 | 0.000\* | 0.500\* |
+| Conciseness | 1.000 | 1.000 | 1.000 | 0.500\* |
 | Faithfulness | 1.000 | 1.000 | 1.000 | 1.000 |
 | Harmfulness | 1.000 | 1.000 | 1.000 | 1.000 |
 | InstructionFollowing | 1.000 | 1.000 | 1.000 | 1.000 |
-| ResponseRelevance | 1.000 | 1.000 | 0.500\* | 1.000 |
-| ContextRelevance | 1.000 | 1.000 | 0.500\* | 1.000 |
+| ResponseRelevance | 1.000 | 1.000 | 1.000 | 1.000 |
+| ContextRelevance | 1.000 | 1.000 | 1.000 | 1.000 |
 | Refusal | 0.000\*\* | 0.000\*\* | 0.000\*\* | 0.000\*\* |
 | Stereotyping | 1.000 | 1.000 | 1.000 | 1.000 |
-| GoalSuccessRate | 1.000 | 0.000\* | 1.000 | 1.000 |
+| GoalSuccessRate | 1.000 | 1.000 | 0.000\* | 0.000\* |
 | ToolSelectionAccuracy | (ran†) | 1.000 | 1.000 | 0.000\* |
 | ToolParameterAccuracy | (ran†) | 1.000 | 1.000 | 0.000\* |
 | TrajectoryAnyOrderMatch | 1.000 | 0.500 | 1.000 | 1.000 |
@@ -657,12 +728,16 @@ Real AgentCore CloudWatch traces, real Bedrock OpenAI-compatible judge
 \* **Content** outcomes, not pipeline gaps: the evaluator *ran*; it scored low
 because the terse ground truth didn't match the fuller answer, or the session
 accumulated many drifting turns. The table's point is *which evaluators run*.
+Individual content scores vary run-to-run with the judge (e.g. Helpfulness for a
+given framework may land 0.667 or 0.833 on different runs); the structure — all
+15 running for all four frameworks — is stable.
 \*\* Refusal=0.0 on benign traffic is expected polarity: these agents never had
 anything to refuse.
-† Strands showed a transient judge error for the two tool-level cells in this
-particular run (caught per-cell by the matrix). Verified separately: its native
-`ToolExecutionSpan`s produce 5 valid TOOL_LEVEL inputs, so the evaluators have
-data — the blank is run noise, not a gap.
+† Strands's two tool-level cells show blank in the matrix script only because of
+a transient judge error on that pass, caught per-cell. Strands **does** have
+native `ToolExecutionSpan`s (verified this run: `session_has_tool_spans=True`),
+and the CLI path (§11 Step 3a) scored its `ToolParameterAccuracy=1.0` across all
+10 tool calls — so this is run noise, not a gap.
 
 ### 8.4 Analysis — how each framework reaches 15/15
 
@@ -687,7 +762,10 @@ already-deployed agents' CloudWatch data).
 This is exactly what happens when you evaluate one framework's agent — the
 concrete pipeline behind every column of the §8.3 matrix. It's the same sequence
 whether you run it ad hoc (`framework_matrix.py`), on-demand (`saes run`), or
-online (`saes serve`); only the trigger differs.
+online (`saes serve`); only the trigger differs. **For the actual copy-paste
+commands to deploy and evaluate each framework, see [§11 "The four-framework
+matrix"](#the-four-framework-matrix-deploy--evaluate-on-agentcore--concrete-commands).**
+The steps below explain what those commands do internally.
 
 #### Step 0 — Deploy the agent (once, per framework)
 
@@ -984,21 +1062,172 @@ python builtin_suite.py      # ~26 judge calls; every built-in good>bad
 python bad_examples.py       # multi-turn bad sessions score 0.0
 ```
 
-### The four-framework matrix (deploy + evaluate on AgentCore)
+### The four-framework matrix (deploy + evaluate on AgentCore) — concrete commands
 
-Deploy a tool-calling agent in each of Strands / no-framework / LangGraph /
-CrewAI to AgentCore Runtime (~5 min each, CodeBuild), invoke each, then:
+This is the full sequence to reproduce §8.3, with the exact commands. The agent
+sources live in `agents/{strands,noframework,langgraph,crewai}_tools/` in the
+verification workspace (`/home/ec2-user/saes_run`); adapt paths for your checkout.
+
+> **Verified end-to-end** against the four deployed runtimes: both the matrix
+> script (Step 3b, printed the full §8.3 grid) and the per-framework CLI path
+> (Step 3a, all four returned `scored N/N` and wrote real scores to CloudWatch —
+> Strands/noframe/langgraph tool-level 1.0, CrewAI trajectory 1.0). The exact
+> outputs are inline below.
+
+#### Prereqs
 
 ```bash
+source .venv/bin/activate    # SAES installed
+pip install bedrock-agentcore bedrock-agentcore-starter-toolkit \
+            langgraph langchain-aws crewai crewai-tools \
+            openinference-instrumentation-langchain openinference-instrumentation-crewai
+export BEDROCK_MODEL_ID="us.anthropic.claude-sonnet-4-5-20250929-v1:0"   # the agent's model
 export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region="us-east-1"))')"
-export BEDROCK_MODEL_ID="openai.gpt-oss-20b-1:0"
-python framework_matrix.py   # 4 frameworks × 15 evaluators over real CloudWatch traces
 ```
 
-Deployment gotchas (already handled in the agent sources): the starter toolkit
-may not write a `Dockerfile` (one is provided per agent); `ecr_auto_create`
-defaults to false (flip it); LangGraph's `ChatBedrockConverse` with an
+#### Step 1 — Deploy each framework's agent to AgentCore (~5 min each, CodeBuild)
+
+Same procedure per framework; only the directory and name change. All four expose
+the same `get_weather` + `calculate` tools:
+
+```bash
+cd agents/strands_tools          # then noframework_tools / langgraph_tools / crewai_tools
+export AGENTCORE_SUPPRESS_RECOMMENDATION=1
+printf '\n\n\n\n\n' | agentcore configure -e agent.py -n saesstrands -rf requirements.txt --create
+sed -i 's/ecr_auto_create: false/ecr_auto_create: true/' .bedrock_agentcore.yaml
+agentcore deploy -env BEDROCK_MODEL_ID="$BEDROCK_MODEL_ID"
+```
+
+Gotchas (already handled in the provided agent sources): the starter toolkit may
+not write a `Dockerfile` (one is provided per agent); `ecr_auto_create` defaults
+to false (the `sed` above flips it); LangGraph's `ChatBedrockConverse` with an
 inference-profile ARN needs `provider="anthropic"`.
+
+#### Step 2 — Invoke each agent (produces real OTEL traces in CloudWatch)
+
+```bash
+cd agents/<fw>_tools
+agentcore invoke '{"prompt": "What is the weather in Tokyo?"}'
+agentcore invoke '{"prompt": "What is 15% of 240?"}'
+agentcore invoke '{"prompt": "Weather in Paris, and what is 12*8?"}'
+```
+
+Wait ~90–100s for trace delivery + Logs Insights indexing before evaluating.
+
+#### Step 3a — Evaluate one framework via the CLI (`saes serve`)
+
+This is what a user actually types. Write a config per framework — only the log
+group changes — then run one online cycle. **Verified working today against all
+four deployed runtimes** (each returned `scored N/N`, exit 0).
+
+First find the session id (needed for the trajectory ground truth). Sessions age
+out of the lookback window, so set `lookback_days` to cover your session — today
+the deployed sessions were 44–63h old, so `lookback_days: 3`:
+
+```bash
+python -c "
+from saes.config.schema import CloudWatchSource
+from saes.ingest.cloudwatch import build_provider, discover_session_ids
+cfg = CloudWatchSource(log_group_names=['/aws/bedrock-agentcore/runtimes/saesnoframe-6AXcAT2oW4-DEFAULT'], region='us-east-1', lookback_days=3)
+print(discover_session_ids(build_provider(cfg), cfg))"
+# -> ['d8d24446-a5c7-4523-b8f8-dc53a2cfc401', ...]
+```
+
+Then write the config + ground truth and run one cycle:
+
+```bash
+cat > eval-noframe.yaml <<'YAML'
+name: eval-noframe
+mode: online
+dataSource:
+  type: cloudwatch
+  cloudwatch:
+    log_group_names: ["/aws/bedrock-agentcore/runtimes/saesnoframe-6AXcAT2oW4-DEFAULT"]
+    region: us-east-1
+    lookback_days: 3                # cover your session's age
+judge:
+  provider: openai_compatible
+  model: "openai.gpt-oss-20b-1:0"
+  base_url: "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1"
+  api_key_env: SAES_JUDGE_API_KEY
+evaluators:
+  - Builtin.Helpfulness
+  - Builtin.ToolSelectionAccuracy   # ← runs for non-Strands too, via the supplement (§7)
+  - Builtin.ToolParameterAccuracy
+  - Builtin.TrajectoryAnyOrderMatch
+session:  {timeout_minutes: 1}      # a session with no span for 1 min counts as complete
+sampling: {percentage: 100.0}
+groundTruth: {path: ./gt_noframe.jsonl}      # for the trajectory matcher
+resultsSink:
+  cloudwatch: {log_group: "/aws/saes/fw-results", metrics_namespace: "SAES/Fw", dimensions: [agentId, evaluatorId]}
+YAML
+
+echo '{"sessionId": "d8d24446-a5c7-4523-b8f8-dc53a2cfc401", "expectedTrajectory": ["get_weather", "calculate"]}' > gt_noframe.jsonl
+
+saes serve -c eval-noframe.yaml --once
+#   serving online eval for 'eval-noframe' (timeout=1.0m, sampling=100.0%)
+#     scored 2/2 session(s) this cycle
+#   cycle: ready=2 scored=2 deferred=0 errored=0
+```
+
+> A session with many tool calls makes many judge calls at tool level. The
+> LangGraph session (13 tool calls) took several minutes — allow a generous
+> timeout when you invoke `saes serve`.
+
+Read the scores back from the sink:
+
+```bash
+python -c "
+import boto3, json
+logs = boto3.client('logs', region_name='us-east-1')
+s = logs.describe_log_streams(logGroupName='/aws/saes/fw-results', orderBy='LastEventTime', descending=True, limit=1)['logStreams'][0]['logStreamName']
+for e in logs.get_log_events(logGroupName='/aws/saes/fw-results', logStreamName=s, startFromHead=False, limit=50)['events']:
+    m = json.loads(e['message'])
+    if m.get('type') == 'saes.result': print(m['evaluatorId'], m['score'])"
+```
+
+Real scores read back today (per framework, abbreviated):
+
+```
+strands   : Helpfulness 0.833 | ToolParameterAccuracy 1.0 (×10 tool calls) | TrajectoryAnyOrderMatch 1.0
+noframe   : Helpfulness 0.833 | ToolSelectionAccuracy 1.0 | ToolParameterAccuracy 1.0 | Trajectory 0.5
+langgraph : Helpfulness 0.833 | ToolSelection/ToolParameter across 13 calls | Trajectory 1.0
+crewai    : Helpfulness 0.833 | ToolParameterAccuracy (ran; 0.0 on its 8-call session) | Trajectory 1.0
+```
+
+Repeat for the other three frameworks by changing `log_group_names` and the
+session id (`saesstrands-ZhPiI77pEM-DEFAULT` / `saeslanggraph-vSzHF7G235-DEFAULT`
+/ `saescrewai-JjA6Jp5dHw-DEFAULT`).
+
+#### Step 3b — All four × all 15 evaluators in one table (the matrix script)
+
+To reproduce the §8.3 table directly (evaluates every deployed framework against
+every built-in and prints the grid), use the workspace script — its judge is set
+via `BEDROCK_MODEL_ID`:
+
+```bash
+cd /home/ec2-user/saes_run
+export SAES_JUDGE_API_KEY="$(python -c 'from aws_bedrock_token_generator import provide_token; print(provide_token(region=\"us-east-1\"))')"
+export BEDROCK_MODEL_ID="openai.gpt-oss-20b-1:0"
+python framework_matrix.py       # 4 frameworks × 15 evaluators over real CloudWatch traces (~10 min)
+```
+
+This was run today and printed the full §8.3 grid (saved to
+`FRAMEWORK_MATRIX_OUTPUT.txt`). Two things to match to your deployment: the
+runtime ids hard-coded near the top (`AGENTS = {...}`) and `lookback_days`
+(currently `3`, since today's sessions were ~2 days old — widen it or invoke the
+agents fresh so discovery finds the sessions). The verbose variant
+(`framework_matrix_verbose.py`) additionally prints reconstructed span types +
+judge reasoning per evaluator.
+
+#### Step 4 — Cleanup
+
+```bash
+for d in strands_tools noframework_tools langgraph_tools crewai_tools; do
+  (cd agents/$d && AGENTCORE_SUPPRESS_RECOMMENDATION=1 agentcore destroy)
+done
+aws logs delete-log-group --log-group-name /aws/saes/fw-results --region us-east-1
+```
 
 ---
 
