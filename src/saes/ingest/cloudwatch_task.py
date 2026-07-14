@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
+import threading
 from typing import Any
 
 from ..config.schema import CloudWatchSource
@@ -34,19 +35,35 @@ _NATIVE_MAPPER_LOGGERS = (
 )
 
 
+# Refcount + lock so concurrent tasks (Experiment runs task(case) via
+# asyncio.to_thread, many cases at once) don't race on the global logger level:
+# one task restoring WARNING while another is still mapping would leak the spam.
+# The level is lowered on the first enter and only restored after the last exit.
+_quiet_lock = threading.Lock()
+_quiet_depth = 0
+_quiet_saved: dict[str, int] = {}
+
+
 @contextlib.contextmanager
 def _quiet_native_mapper_warnings():
-    """Temporarily suppress the native mappers' per-span WARNING spam."""
-    saved = {}
-    for name in _NATIVE_MAPPER_LOGGERS:
-        lg = logging.getLogger(name)
-        saved[name] = lg.level
-        lg.setLevel(logging.ERROR)
+    """Suppress the native mappers' per-span WARNING spam (concurrency-safe)."""
+    global _quiet_depth
+    with _quiet_lock:
+        if _quiet_depth == 0:
+            for name in _NATIVE_MAPPER_LOGGERS:
+                lg = logging.getLogger(name)
+                _quiet_saved[name] = lg.level
+                lg.setLevel(logging.ERROR)
+        _quiet_depth += 1
     try:
         yield
     finally:
-        for name, level in saved.items():
-            logging.getLogger(name).setLevel(level)
+        with _quiet_lock:
+            _quiet_depth -= 1
+            if _quiet_depth == 0:
+                for name, level in _quiet_saved.items():
+                    logging.getLogger(name).setLevel(level)
+                _quiet_saved.clear()
 
 
 def session_has_tool_spans(session: Any) -> bool:

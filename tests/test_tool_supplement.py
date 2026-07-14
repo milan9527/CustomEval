@@ -204,6 +204,28 @@ def test_native_mapper_warning_is_suppressed(caplog):
     assert "Missing required fields" not in caplog.text  # suppressed during run
 
 
+def test_quiet_is_concurrency_safe_nested():
+    """Two overlapping quiet scopes (as when Experiment runs many task(case) in a
+    thread pool) must NOT let the inner exit restore WARNING while the outer is
+    still active — that race leaked the mapper spam for multi-session runs."""
+    import logging
+
+    from saes.ingest.cloudwatch_task import (
+        _NATIVE_MAPPER_LOGGERS,
+        _quiet_native_mapper_warnings,
+    )
+
+    name = _NATIVE_MAPPER_LOGGERS[0]
+    logging.getLogger(name).setLevel(logging.WARNING)
+    with _quiet_native_mapper_warnings():          # outer (task A)
+        with _quiet_native_mapper_warnings():      # inner (task B)
+            assert logging.getLogger(name).level == logging.ERROR
+        # inner exited, but outer still active -> must STAY quiet
+        assert logging.getLogger(name).level == logging.ERROR
+    # both exited -> restored
+    assert logging.getLogger(name).level == logging.WARNING
+
+
 def test_build_task_supplements_when_native_read_raises(monkeypatch):
     """If the native task raises (SessionNotFound for non-Strands agents), the
     wrapped task still returns a Session carrying the supplemented trajectory."""
