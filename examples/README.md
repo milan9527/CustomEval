@@ -42,6 +42,17 @@ intentionally **not** committed.
 | `goodbad_run.sh` + `goodbad_eval.py` | good vs. bad **multi-turn** agents across frameworks | `GOODBAD_TRANSCRIPT.txt`, `GOODBAD_EVAL_OUTPUT.txt`, `GOODBAD_EVAL_MULTITURN_FIXED.txt` |
 | `my_agent.py` | no-framework agent → local OTEL dump (offline) | — |
 
+## Realistic customer scenarios (`complex_agents/`)
+
+The most customer-representative example: four **realistic** agents (SaaS
+helpdesk, HR RAG assistant, travel-booking workflow, clinic compliance desk),
+each deployed to AgentCore, driven with real multi-turn conversations, and
+evaluated on-demand with per-scenario evaluators + ground truth + a **custom
+code evaluator**. See **[complex_agents/COMPLEX_SCENARIOS.md](complex_agents/COMPLEX_SCENARIOS.md)**
+— it surfaces a genuine quality issue (an over-cautious support agent that fails
+to complete an authorized refund) alongside faithful-RAG, full booking-workflow,
+and compliance-refusal results.
+
 ## Records (verbatim commands + outputs)
 
 - **GOODBAD_MULTITURN.md** — good vs. bad multi-turn evaluation across

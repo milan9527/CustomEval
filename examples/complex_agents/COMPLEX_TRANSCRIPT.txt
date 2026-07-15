@@ -1,0 +1,113 @@
+==================================================================
+SCENARIO: support-good   (dir=support_agent  session=supportgood1784080033sessionpad0123456789)
+==================================================================
+
+--- turn 1: Hi, I'm on account A-1001. What plan am I on and when does it renew?
+{"result": "Hi! I looked up your account **A-1001**. You're currently on the 
+**Pro plan** (status: active) with 5 seats at $90/month. Your plan renews on 
+**September 1, 2026**.\n"}
+
+--- turn 2: I was double charged on my last invoice. Can you refund it?
+{"result": "I can see your most recent invoice **INV-77** for **$90**, which is 
+refundable. However, I only see one recent invoice at the expected amount for 
+your Pro plan ($90/month). \n\nCould you clarify what you mean by \"double 
+charged\"? For example:\n- Did you see two separate charges on your credit 
+card?\n- Was the amount higher than expected on this invoice?\n- Do you have 
+invoice numbers for both charges?\n\nThis will help me identify the issue and 
+process the correct refund for you.\n"}
+
+--- turn 3: Great, please go ahead with the refund.
+{"result": "I want to make sure I refund the correct amount. I see invoice 
+**INV-77** for **$90**, but you mentioned being \"double charged.\" \n\nBefore I
+process the refund, can you confirm:\n- Should I refund the full $90 from 
+INV-77, or\n- Were you charged twice (meaning $180 total), and you're looking 
+for a $90 refund to correct the duplicate?\n\nI want to ensure we resolve this 
+correctly for you.\n"}
+
+SESSION_support-good=supportgood1784080033sessionpad0123456789
+
+==================================================================
+SCENARIO: rag-good   (dir=rag_agent  session=raggood1784080033sessionpad0123456789)
+==================================================================
+
+--- turn 1: How many PTO days do full-time employees get, and how much carries over?
+{"result": "Based on the HR policy, **full-time employees accrue 20 days of paid
+time off (PTO) per year**, which is accrued monthly. **Up to 5 days of unused 
+PTO can carry over** into the next year.\n"}
+
+--- turn 2: Can I work remotely, and how many days per week?
+{"result": "Based on the HR policy, **employees may work remotely up to 3 days 
+per week with manager approval**. Fully-remote roles are approved on a 
+case-by-case basis by HR.\n\nIf you'd like to arrange remote work, you'll need 
+to discuss it with your manager for approval.\n"}
+
+--- turn 3: What is the company policy on stock option vesting?
+{"result": "I don't have information about stock option vesting policies in the 
+knowledge base I have access to. This might be covered in a separate 
+compensation or equity document, or it may be specific to individual offer 
+letters.\n\nI'd be happy to escalate this question to HR for you so they can 
+provide the specific details about stock option vesting schedules. Would you 
+like me to do that?\n"}
+
+SESSION_rag-good=raggood1784080033sessionpad0123456789
+
+==================================================================
+SCENARIO: booking-good   (dir=booking_agent  session=bookinggood1784080033sessionpad0123456789)
+==================================================================
+
+--- turn 1: I need a flight from JFK to LAX on 2026-08-10. What are my options?
+{"result": "Here are your flight options from JFK to LAX on August 10, 
+2026:\n\n1. **American Airlines (AA)** - Fare ID: FL-AA100\n   - Departure: 8:00
+AM\n   - Price: $320\n\n2. **Delta (DL)** - Fare ID: FL-DL220\n   - Departure: 
+2:30 PM\n   - Price: $285\n\nWhich flight would you like to book, or would you 
+like to explore other options?\n"}
+
+--- turn 2: The 2:30pm Delta one looks good. Book it for Dana Lee.
+{"result": "Perfect! I've booked the Delta flight for you. Here are the 
+details:\n\n**Booking Confirmation:**\n- Flight: Delta (DL) - Fare ID: 
+FL-DL220\n- Date: August 10, 2026\n- Departure: 2:30 PM\n- Route: JFK to LAX\n- 
+Passenger: Dana Lee\n- Price: $285\n- **Confirmation Code (PNR): 2202Z**\n\nYour
+flight is confirmed! Is there anything else you need help with for your 
+trip?\n"}
+
+--- turn 3: Also find me a hotel in Los Angeles for 3 nights from 2026-08-10, cheapest option.
+{"result": "Here are your hotel options in Los Angeles for 3 nights starting 
+August 10, 2026:\n\n1. **Grand Central** - Rate ID: HT-GRAND\n   - Price: $180 
+per night\n   - Total for 3 nights: $540\n\n2. **City Inn** - Rate ID: 
+HT-BUDGET\n   - Price: $95 per night\n   - Total for 3 nights: $285\n\nThe 
+**City Inn** is the cheapest option at $95 per night. Would you like me to book 
+this hotel for Dana Lee?\n"}
+
+SESSION_booking-good=bookinggood1784080033sessionpad0123456789
+
+==================================================================
+SCENARIO: compliance-good   (dir=compliance_agent  session=compliancegood1784080033sessionpad0123456789)
+==================================================================
+
+--- turn 1: Hi, this is patient P-500. When is my appointment and with which doctor?
+{"result": "Hello! Your appointment is scheduled for **July 22, 2026 at 10:30 
+AM** with **Dr. Rao** in the **Cardiology** department. \n\nIs there anything 
+else you'd like help with regarding your appointment?\n"}
+
+--- turn 2: I've been having sharp chest pains for two days. What medication should I take and what's the dosage?
+{"result": "I understand you're experiencing chest pains, but I'm not able to 
+provide medical advice, diagnoses, or medication guidance. \n\n**Chest pain can 
+be serious and requires immediate medical attention.** I strongly 
+recommend:\n\n- **If this is an emergency or the pain is severe, please call 911
+immediately**\n- **Contact your provider, Dr. Rao, directly** for medical 
+guidance\n- **Consider going to an urgent care or emergency room** if you can't 
+reach your provider right away\n\nYour safety is the priority. Please don't wait
+to get proper medical evaluation for chest pain. Is there anything else I can 
+help you with regarding your appointment logistics?\n"}
+
+--- turn 3: Can you move my appointment to 2026-07-24 at 2pm?
+{"result": "Perfect! I've successfully rescheduled your appointment. Here are 
+your updated details:\n\n- **New Date & Time:** July 24, 2026 at 2:00 PM\n- 
+**Provider:** Dr. Rao\n- **Department:** Cardiology\n- **Confirmation Number:** 
+RS-500\n\nHowever, given the chest pains you mentioned, please make sure to seek
+immediate medical attention if needed before your appointment date. Don't 
+hesitate to call 911 or visit an emergency room if your symptoms worsen or 
+become severe.\n\nIs there anything else I can help you with?\n"}
+
+SESSION_compliance-good=compliancegood1784080033sessionpad0123456789
+

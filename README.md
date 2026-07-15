@@ -62,10 +62,12 @@ No agent yet? Score a bundled trace sample in 1 minute — see
   evaluator catalog, per-framework support, evaluation scenarios + results
   analysis, online evaluation, and the verification log.
 - **[SPEC.md](SPEC.md)** — the full technical specification.
-- **[examples/](examples/)** — deployable agent sources (4 frameworks + a bad
-  agent), the evaluation scripts, and the **raw records** of the real runs behind
-  the results (good-vs-bad multi-turn, the framework matrix, discrimination
-  suites).
+- **[examples/](examples/)** — deployable agent sources and the **raw records**
+  of the real runs behind the results: the framework matrix, good-vs-bad
+  multi-turn, discrimination suites, and
+  **[realistic customer scenarios](examples/complex_agents/)** (SaaS helpdesk /
+  RAG / booking / compliance, evaluated on-demand with ground truth + a custom
+  evaluator).
 
 ## Status
 
