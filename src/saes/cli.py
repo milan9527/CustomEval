@@ -4,7 +4,7 @@
     saes run    --config eval.yaml [--dataset gt.jsonl] [--json out.json] [--html out.html]
     saes doctor [--data-source dump.jsonl] [--judge eval.yaml]
     saes init   [--agent-type customer-service|rag|tool-heavy] [--out eval.yaml]
-    saes serve  --config online.yaml [--interval 60] [--state state.json] [--once]
+    saes serve  RUNTIME_ID [--sampling 100] [--interval 60] [--once]   (or --config online.yaml)
 
 `eval` is the one-liner: give it an AgentCore Runtime id and it evaluates that
 runtime's recent CloudWatch traces — no YAML, no ground truth. `run` exits
@@ -231,6 +231,28 @@ _REFERENCE_FREE_EVALUATORS = [
 ]
 
 
+def _select_evaluator_ids(evaluators: str | None, all_evaluators: bool) -> list[str]:
+    """Resolve the evaluator id list for the zero-config commands: explicit
+    --evaluators wins, else --all (every built-in except trajectory matchers,
+    which need ground truth), else the reference-free default. Validates ids and
+    exits(2) on an unknown one."""
+    from .evaluators.registry import available_builtins
+
+    if evaluators:
+        ev_ids = [e.strip() for e in evaluators.split(",") if e.strip()]
+    elif all_evaluators:
+        ev_ids = [e for e in available_builtins() if not e.startswith("Builtin.Trajectory")]
+    else:
+        ev_ids = list(_REFERENCE_FREE_EVALUATORS)
+    unknown = [e for e in ev_ids if e not in set(available_builtins())]
+    if unknown:
+        typer.secho(f"unknown evaluator id(s): {', '.join(unknown)}",
+                    fg=typer.colors.RED, err=True)
+        typer.echo("run `saes eval --list-evaluators` to see valid ids.", err=True)
+        raise typer.Exit(code=2)
+    return ev_ids
+
+
 @contextlib.contextmanager
 def _quiet_judge_retry_noise():
     """Silence the per-retry ERROR the Strands tool executor logs when a judge
@@ -324,22 +346,7 @@ def eval(  # noqa: A001 - deliberately named `eval` for the CLI verb
                     fg=typer.colors.RED, err=True)
         raise typer.Exit(code=2)
 
-    # Choose evaluators: explicit --evaluators wins, else --all, else the
-    # reference-free default (needs no ground truth).
-    if evaluators:
-        ev_ids = [e.strip() for e in evaluators.split(",") if e.strip()]
-    elif all_evaluators:
-        ev_ids = [e for e in available_builtins() if not e.startswith("Builtin.Trajectory")]
-    else:
-        ev_ids = list(_REFERENCE_FREE_EVALUATORS)
-
-    # Validate ids up front so a typo fails fast with the valid list.
-    valid = set(available_builtins())
-    unknown = [e for e in ev_ids if e not in valid]
-    if unknown:
-        typer.secho(f"unknown evaluator id(s): {', '.join(unknown)}", fg=typer.colors.RED, err=True)
-        typer.echo("run `saes eval --list-evaluators` to see valid ids.", err=True)
-        raise typer.Exit(code=2)
+    ev_ids = _select_evaluator_ids(evaluators, all_evaluators)
 
     log_group = _runtime_log_group(runtime)
     cfg = EvaluationConfig(
@@ -491,29 +498,107 @@ def init(
 
 @app.command()
 def serve(
-    config: Path = typer.Option(..., "--config", "-c", help="Online-mode config YAML"),
+    runtime: str = typer.Argument(
+        None,
+        help="AgentCore Runtime id (e.g. 'myagent-XyZ123') — the zero-config path. "
+             "Omit and pass --config to use a full YAML instead.",
+    ),
+    config: Path | None = typer.Option(
+        None, "--config", "-c", help="Online-mode config YAML (alternative to RUNTIME)"
+    ),
+    # zero-config options (used when RUNTIME is given; mirror `saes eval`)
+    judge_model: str = typer.Option("openai.gpt-oss-20b-1:0", "--judge-model"),
+    judge_base_url: str = typer.Option(
+        "https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1", "--judge-base-url"
+    ),
+    api_key_env: str = typer.Option("SAES_JUDGE_API_KEY", "--api-key-env"),
+    region: str = typer.Option("us-east-1", "--region"),
+    evaluators: str | None = typer.Option(
+        None, "--evaluators", "-e",
+        help="Comma-separated evaluator ids (default: the 12 reference-free built-ins)",
+    ),
+    all_evaluators: bool = typer.Option(False, "--all", help="Run all 13 built-in evaluators"),
+    sampling: float = typer.Option(
+        100.0, "--sampling", "--sample", min=0.0, max=100.0,
+        help="Percent of completed sessions to score (default 100)",
+    ),
+    timeout_minutes: float = typer.Option(
+        5.0, "--session-timeout",
+        help="A session is 'complete' after this many minutes with no new span",
+    ),
+    results_log_group: str | None = typer.Option(
+        None, "--results-log-group",
+        help="CloudWatch log group for results (default: /aws/saes/<runtime>-results)",
+    ),
     interval: float = typer.Option(60.0, "--interval", help="Seconds between polling cycles"),
     state: Path | None = typer.Option(None, "--state", help="JSON state file (survives restarts)"),
     once: bool = typer.Option(False, "--once", help="Run a single cycle and exit"),
 ) -> None:
-    """Run the online evaluation worker loop (SPEC §8.2).
+    """Continuously evaluate a live agent's new CloudWatch traffic (online mode).
 
-    Polls the CloudWatch data source, detects completed sessions (span-quiescence
-    timeout), samples + scores them, and emits results to CloudWatch. Each
-    session is scored at most once.
+    Zero-config: just give an AgentCore Runtime id — `saes serve myagent-XyZ123`.
+    It polls the runtime's log group, detects completed sessions (span-quiescence
+    timeout), samples + scores them, and writes results to CloudWatch. Each
+    session is scored at most once. For CI gates / custom evaluators / a non-
+    AgentCore log group, pass a full YAML with `--config` instead.
     """
     import time as _time
 
     from .config import load_config
+    from .config.schema import (
+        CloudWatchSink,
+        CloudWatchSource,
+        DataSourceConfig,
+        EvaluationConfig,
+        EvaluatorRef,
+        JudgeModelConfig,
+        ResultsSinkConfig,
+        SamplingConfig,
+        SessionConfig,
+    )
     from .ingest.cloudwatch import build_provider, discover_sessions_with_last_seen
     from .online import OnlineWorker, SessionTracker
     from .online.scoring import make_scorer
 
-    cfg = load_config(config)
-    if cfg.data_source.type != "cloudwatch":
-        typer.secho(
-            "serve requires dataSource.type: cloudwatch", fg=typer.colors.RED, err=True
+    if config is not None:
+        cfg = load_config(config)
+        if cfg.data_source.type != "cloudwatch":
+            typer.secho(
+                "serve requires dataSource.type: cloudwatch", fg=typer.colors.RED, err=True
+            )
+            raise typer.Exit(code=2)
+    elif runtime:
+        # zero-config: build an online config in-memory from just the runtime id
+        log_group = _runtime_log_group(runtime)
+        ev_ids = _select_evaluator_ids(evaluators, all_evaluators)
+        rid = runtime.split("/")[-1].removesuffix("-DEFAULT")
+        sink_group = results_log_group or f"/aws/saes/{rid}-results"
+        cfg = EvaluationConfig(
+            name=f"serve-{rid}",
+            mode="online",
+            data_source=DataSourceConfig(
+                type="cloudwatch",
+                cloudwatch=CloudWatchSource(
+                    log_group_names=[log_group], region=region, lookback_days=1
+                ),
+            ),
+            evaluators=[EvaluatorRef(id=e) for e in ev_ids],
+            judge=JudgeModelConfig(
+                model=judge_model, base_url=judge_base_url, api_key_env=api_key_env
+            ),
+            sampling=SamplingConfig(percentage=sampling),
+            session=SessionConfig(timeout_minutes=timeout_minutes),
+            results_sink=ResultsSinkConfig(
+                cloudwatch=CloudWatchSink(
+                    log_group=sink_group, metrics_namespace="SAES/Evaluations",
+                    dimensions=["agentId", "evaluatorId"],
+                )
+            ),
         )
+        typer.secho(f"serving {log_group}", fg=typer.colors.GREEN)
+        typer.echo(f"  results → {sink_group}  |  {len(ev_ids)} evaluator(s)")
+    else:
+        typer.secho("error: give a RUNTIME id or --config", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=2)
 
     provider = build_provider(cfg.data_source.cloudwatch)
@@ -534,7 +619,8 @@ def serve(
     )
     while True:
         now_ms = int(_time.time() * 1000)
-        result = worker.run_cycle(now_ms)
+        with _quiet_judge_retry_noise():
+            result = worker.run_cycle(now_ms)
         typer.echo(
             f"cycle: ready={len(result.ready)} scored={len(result.scored)} "
             f"deferred={len(result.deferred)} errored={len(result.errored)}"

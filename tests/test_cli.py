@@ -370,3 +370,44 @@ def test_serve_rejects_non_cloudwatch(tmp_path):
     result = runner.invoke(app, ["serve", "-c", str(cfg), "--once"])
     assert result.exit_code == 2
     assert "requires dataSource.type: cloudwatch" in result.output
+
+
+def test_serve_zero_config_from_runtime_id(monkeypatch):
+    """`saes serve <runtime>` needs no YAML: it builds the online config from the
+    runtime id (log group, default evaluators, an auto-derived results sink)."""
+    import time as _t
+
+    captured = {}
+
+    def _scorer(cfg):
+        captured["cfg"] = cfg
+        return lambda ids: list(ids)
+
+    monkeypatch.setattr("saes.ingest.cloudwatch.build_provider", lambda cw: object())
+    now_ms = int(_t.time() * 1000)
+    monkeypatch.setattr(
+        "saes.ingest.cloudwatch.discover_sessions_with_last_seen",
+        lambda provider, cw: [("s1", now_ms - 20 * 60_000)],
+    )
+    monkeypatch.setattr("saes.online.scoring.make_scorer", _scorer)
+
+    result = runner.invoke(
+        app, ["serve", "myagent-XyZ", "--session-timeout", "1", "--once"]
+    )
+    assert result.exit_code == 0, result.output
+    assert "cycle: ready=1 scored=1" in result.output
+    cfg = captured["cfg"]
+    assert cfg.mode == "online"
+    assert cfg.data_source.cloudwatch.log_group_names == [
+        "/aws/bedrock-agentcore/runtimes/myagent-XyZ-DEFAULT"
+    ]
+    # results sink auto-derived from the runtime id, no YAML needed
+    assert cfg.results_sink.cloudwatch.log_group == "/aws/saes/myagent-XyZ-results"
+    assert cfg.session.timeout_minutes == 1.0
+    assert len(cfg.evaluators) == 12  # reference-free default
+
+
+def test_serve_requires_runtime_or_config():
+    result = runner.invoke(app, ["serve", "--once"])
+    assert result.exit_code == 2
+    assert "give a RUNTIME id or --config" in result.output

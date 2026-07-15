@@ -39,6 +39,14 @@ saes eval myagent-XXX --all                            # every built-in
 saes eval myagent-XXX --sampling 25                    # score 25% of sessions
 ```
 
+**Continuous (online) monitoring** is the same one-liner — just `serve` instead
+of `eval`:
+
+```bash
+saes serve myagent-XXX                                 # poll live traffic, score completed sessions
+saes serve myagent-XXX --once                          # a single cycle (CI/cron)
+```
+
 Full start-to-finish example (build agent → deploy → evaluate) in
 **[WALKTHROUGH.md](WALKTHROUGH.md)**.
 

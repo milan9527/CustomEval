@@ -260,6 +260,20 @@ cd my_agent && AGENTCORE_SUPPRESS_RECOMMENDATION=1 agentcore destroy && cd ..
 | Judge probe / scoring fails on a non-Bedrock endpoint | Your endpoint must support tool calling / structured output. Verify with `saes doctor --judge <config>`. |
 | `ModuleNotFoundError: openai` | `pip install openai` (needed for the `openai_compatible` judge). |
 
+## Continuous monitoring (online) — same one-liner
+
+Everything above is one-shot (`saes eval`). To evaluate a **live** agent's new
+traffic continuously, use `saes serve` with the same runtime id:
+
+```bash
+saes serve myagent-XXXXXXXXXX                 # polls every 60s, scores completed sessions
+saes serve myagent-XXXXXXXXXX --once          # a single cycle (CI/cron)
+```
+
+It auto-creates a results sink at `/aws/saes/<runtime>-results` and takes the same
+`-e` / `--all` / `--sampling` / `--judge-model` flags, plus `--session-timeout`
+(minutes of quiet before a session counts as done). See DOCUMENTATION.md §9.
+
 ## Where to go next
 
 - **Other frameworks** (LangGraph / CrewAI / a plain no-framework script) evaluate

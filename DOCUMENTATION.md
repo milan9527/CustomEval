@@ -1056,7 +1056,27 @@ build_supplemented_task ── native read ──► [raises?] ── empty Sess
 
 ## 9. Online / production evaluation
 
-The `saes serve` worker monitors a live agent's CloudWatch traffic:
+Continuous evaluation of a live agent's traffic. Like `saes eval`, the zero-config
+path is **just the runtime id** — no YAML:
+
+```bash
+saes serve myagent-XyZ123                     # continuous; polls every 60s
+saes serve myagent-XyZ123 --once              # one cycle (CI/cron)
+saes serve myagent-XyZ123 --sampling 5 --session-timeout 30 --all
+```
+
+It derives the runtime's log group, uses the 12 reference-free evaluators by
+default, and **auto-creates a results sink** at `/aws/saes/<runtime>-results`
+(override with `--results-log-group`). Same evaluator flags as `saes eval`
+(`-e`, `--all`, `--sampling`, `--judge-model`, …), plus:
+- `--session-timeout N` — a session is "complete" after N minutes with no new span.
+- `--interval N` — seconds between polling cycles (default 60).
+- `--state FILE` — persist which sessions were scored across restarts.
+
+Verified live: `saes serve saesstrands-... --once` scored 3/3 sessions and wrote
+results to the auto-derived CloudWatch group.
+
+### What the worker does each cycle
 
 1. **Discover** session ids in the lookback window (Logs Insights).
 2. **Detect completion** via span-quiescence — no new span for
@@ -1066,6 +1086,11 @@ The `saes serve` worker monitors a live agent's CloudWatch traffic:
 4. **Score** via the same pipeline as `saes run` (including the supplements).
 5. **Emit** EMF metrics + JSON result records to CloudWatch. Each session is
    scored at most once (persisted scored-set); failures retry next cycle.
+
+### Full-config alternative (`--config`)
+
+For CI gates, custom LLM/code evaluators, a non-AgentCore log group, or a rolling
+rate cap, pass a YAML instead of a runtime id:
 
 ```yaml
 mode: online
@@ -1087,9 +1112,8 @@ saes serve -c online.yaml --interval 60 --state state.json   # continuous loop
 saes serve -c online.yaml --once                             # one cycle (CI/cron)
 ```
 
-`--state` persists which sessions were scored across restarts. Custom code
-evaluators can also run as a Lambda (`online/lambda_evaluator.py`), and `cdk/`
-provisions a dashboard + alarms + least-privilege worker role.
+Custom code evaluators can also run as a Lambda (`online/lambda_evaluator.py`),
+and `cdk/` provisions a dashboard + alarms + least-privilege worker role.
 
 ### Relationship to managed AgentCore Evaluations
 
