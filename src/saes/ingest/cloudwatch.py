@@ -111,9 +111,13 @@ def fetch_session_records(
     """Fetch raw span records for a session, INCLUDING tool spans that carry no
     session.id (bridged via shared trace_id).
 
-    Two-step: (1) find the trace_ids that belong to this session via the spans
-    that DO carry session.id; (2) fetch all `@message` records in those traces.
-    Feeds `tool_supplement.extract_session_tool_calls` (SPEC F6 fix)."""
+    (1) Fetch every record that carries this `session.id` directly — this alone is
+    the whole session for agents whose spans all tag session.id (Strands, and the
+    Claude Agent SDK, whose log events are keyed by `prompt.id` and carry NO
+    trace_id). (2) Additionally bridge via shared `trace_id`: fetch all records in
+    the session's traces, to catch session-id-less tool spans (the botocore/
+    LangGraph case). Union the two. Feeds
+    `tool_supplement.extract_session_tool_calls` (SPEC F6 fix)."""
     import json
 
     client = _provider_client(provider)
@@ -124,52 +128,49 @@ def fetch_session_records(
     end = datetime.now(tz=timezone.utc)
     start = end - timedelta(days=cfg.lookback_days)
 
-    # step 1: trace ids for this session
-    q1 = (
-        f"fields attributes.session.id as sid, @message "
-        f"| filter sid = '{session_id}' | limit 500"
+    def _run(query: str) -> list[dict[str, Any]]:
+        resp = client.start_query(
+            logGroupName=log_group,
+            startTime=int(start.timestamp()),
+            endTime=int(end.timestamp()),
+            queryString=query,
+        )
+        out: list[dict[str, Any]] = []
+        for row in _poll(client, resp["queryId"]):
+            msg = next((f["value"] for f in row if f.get("field") == "@message"), None)
+            if not msg:
+                continue
+            try:
+                out.append(json.loads(msg))
+            except (json.JSONDecodeError, TypeError):
+                continue
+        return out
+
+    # step 1: every record carrying this session.id directly
+    session_recs = _run(
+        f"fields @message | filter attributes.session.id = '{session_id}' | limit 2000"
     )
-    resp = client.start_query(
-        logGroupName=log_group,
-        startTime=int(start.timestamp()),
-        endTime=int(end.timestamp()),
-        queryString=q1,
-    )
-    rows = _poll(client, resp["queryId"])
+
+    # step 2: bridge via trace_id to catch session-id-less tool spans. Agents whose
+    # spans have no traceId (e.g. the Claude Agent SDK) skip this — step 1 is whole.
     trace_ids: set[str] = set()
-    for row in rows:
-        msg = next((f["value"] for f in row if f.get("field") == "@message"), None)
-        if not msg:
-            continue
-        try:
-            obj = json.loads(msg)
-        except (json.JSONDecodeError, TypeError):
-            continue
+    for obj in session_recs:
         tid = obj.get("traceId") or obj.get("trace_id")
         if tid:
-            trace_ids.add(tid)
-    if not trace_ids:
-        return []
+            trace_ids.add(str(tid))
+    trace_recs: list[dict[str, Any]] = []
+    if trace_ids:
+        filt = " or ".join(f"traceId = '{t}'" for t in trace_ids)
+        trace_recs = _run(f"fields @message | filter {filt} | limit 2000")
 
-    # step 2: all records in those traces (catches session-id-less tool spans)
-    filt = " or ".join(f"traceId = '{t}'" for t in trace_ids)
-    q2 = f"fields @message | filter {filt} | limit 2000"
-    resp2 = client.start_query(
-        logGroupName=log_group,
-        startTime=int(start.timestamp()),
-        endTime=int(end.timestamp()),
-        queryString=q2,
-    )
-    rows2 = _poll(client, resp2["queryId"])
+    # union, de-duplicated (a record may match both queries)
     records: list[dict[str, Any]] = []
-    for row in rows2:
-        msg = next((f["value"] for f in row if f.get("field") == "@message"), None)
-        if not msg:
-            continue
-        try:
-            records.append(json.loads(msg))
-        except (json.JSONDecodeError, TypeError):
-            continue
+    seen: set[str] = set()
+    for obj in [*session_recs, *trace_recs]:
+        key = json.dumps(obj, sort_keys=True)
+        if key not in seen:
+            seen.add(key)
+            records.append(obj)
     return records
 
 

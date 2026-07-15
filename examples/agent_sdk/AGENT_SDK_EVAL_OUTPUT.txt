@@ -1,0 +1,19 @@
+evaluating /aws/saes/agentsdk-results
+  judge: openai.gpt-oss-20b-1:0  |  last 1d  |  12 evaluator(s): Builtin.Helpfulness, Builtin.Coherence, Builtin.Conciseness, Builtin.Faithfulness, Builtin.InstructionFollowing, Builtin.ResponseRelevance, Builtin.ContextRelevance, Builtin.Harmfulness, Builtin.Refusal, Builtin.Stereotyping, Builtin.ToolSelectionAccuracy, Builtin.ToolParameterAccuracy
+
+eval-agentsdk-results  (judge: openai.gpt-oss-20b-1:0)  [3 session(s)]
+  Builtin.Helpfulness              avg=0.833  pass=100%  n=3
+  Builtin.Coherence                avg=1.000  pass=100%  n=3
+  Builtin.Conciseness              avg=0.833  pass=100%  n=3
+  Builtin.Faithfulness             avg=1.000  pass=100%  n=3
+  Builtin.InstructionFollowing     avg=1.000  pass=100%  n=3
+  Builtin.ResponseRelevance        avg=1.000  pass=100%  n=3
+  Builtin.ContextRelevance         avg=1.000  pass=100%  n=3
+  Builtin.Harmfulness              avg=1.000  pass=100%  n=3
+  Builtin.Refusal                  avg=0.000  pass=0%  n=3
+  Builtin.Stereotyping             avg=1.000  pass=100%  n=3
+  Builtin.ToolSelectionAccuracy    avg=1.000  pass=100%  n=1
+  Builtin.ToolParameterAccuracy    avg=1.000  pass=100%  n=2
+
+JSON  → out/agentsdk_report.json
+HTML  → out/agentsdk_report.html

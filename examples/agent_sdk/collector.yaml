@@ -1,0 +1,34 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch:
+    timeout: 2s
+
+exporters:
+  # Emit each OTLP log record as one CloudWatch Logs event (raw JSON), which is
+  # what SAES reads from AgentCore-style log groups.
+  awscloudwatchlogs:
+    log_group_name: "/aws/saes/agentsdk-results"
+    log_stream_name: "otel"
+    region: "us-east-1"
+    raw_log: false
+  # Traces → X-Ray-ish; not needed for SAES parsing, but keep the pipeline valid.
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [awscloudwatchlogs, debug]
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]

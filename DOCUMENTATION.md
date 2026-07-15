@@ -704,7 +704,7 @@ recognized natively:
 | `strands.telemetry.tracer` | Strands mapper (full: agent + tool spans) | Strands SDK |
 | `opentelemetry.instrumentation.langchain` | LangChain-OTEL mapper | LangChain/LangGraph via OTEL instrumentor |
 | `openinference.instrumentation.langchain` | OpenInference mapper | OpenInference LangChain instrumentor |
-| anything else (`…crewai`, `botocore…`, custom) | **none matches** → native read may raise | CrewAI, bare boto3, custom |
+| anything else (`…crewai`, `botocore…`, `com.anthropic.claude_code.events`, custom) | **none matches** → native read may raise | CrewAI, bare boto3, Claude Agent SDK, custom |
 
 **If your scope isn't one of the three, you are not broken** — SAES's supplement
 (§7.2) recovers the trajectory + turns from the raw Bedrock Converse spans
@@ -747,6 +747,27 @@ no-framework agent reach full coverage.
   (including the final answer as `body.message`). SAES reconstructs the turn +
   tools from those. Just make sure your Bedrock calls go through the instrumented
   client (they do by default on AgentCore Runtime).
+- **Claude Agent SDK** (`claude-agent-sdk`) — has its own built-in OpenTelemetry.
+  Set `CLAUDE_CODE_ENABLE_TELEMETRY=1` + `OTEL_LOG_RAW_API_BODIES=1` and export
+  over OTLP to a collector that forwards to CloudWatch (it does **not** write to
+  CloudWatch directly — its docs also warn against the `console` exporter). Its
+  record shape is unlike the others: one scope
+  (`com.anthropic.claude_code.events`) for everything, the event kind in
+  `attributes["event.name"]`, turns keyed by `attributes["prompt.id"]` (no
+  `traceId`), and clean text in dedicated `user_prompt` / `assistant_response`
+  events. SAES ingestion handles all of this; the CLI's internal session-title
+  call (`query_source="generate_session_title"`) is filtered so the scored answer
+  is the real turn. **Verified end to end** (agent → OTLP → ADOT collector →
+  CloudWatch → `saes eval`, all 12 reference-free evaluators scored) — see
+  [examples/agent_sdk/](../examples/agent_sdk/README.md). Emit-side gap: the SDK's
+  `tool_result` event carries only metadata, so the tool *result* payload isn't
+  recoverable (trajectory, args, prompt, and final answer are).
+- **Raw Anthropic API SDK** (`anthropic` / `AnthropicBedrock`) — **not evaluable
+  as-is.** It calls Bedrock over its own httpx + SigV4 client, which botocore's
+  instrumentation never sees, so it emits no usable OTEL. The fix is on the emit
+  side (instrument its HTTP client, or route through boto3). This is the negative
+  counterpart to the Claude *Agent* SDK above — the contract is on the telemetry,
+  not the SDK name.
 
 #### The one habit
 
@@ -867,6 +888,67 @@ and the CLI path (§11 Step 3a) scored its `ToolParameterAccuracy=1.0` across al
 framework-agnostic claim holds at full depth — achieved entirely in SAES
 ingestion, with no agent change and no redeploy (verified against the same
 already-deployed agents' CloudWatch data).
+
+#### A fifth framework, end to end: the Claude Agent SDK
+
+Beyond the four AgentCore agents above, the **Claude Agent SDK**
+(`claude-agent-sdk`) was run through the *full emit path* — agent → OTLP → an ADOT
+collector → CloudWatch → `saes eval` — to prove the OTLP→CloudWatch wiring, not
+just the SAES-side parsing. Over 3 real sessions all 12 reference-free evaluators
+produced scores, with a faithfully reconstructed turn (prompt, final answer,
+`["Bash"]` trajectory, args). Full write-up, sources, and the browsable HTML report:
+**[examples/agent_sdk/](../examples/agent_sdk/README.md)**.
+
+**The full pipeline — from agent run to evaluation result.** There are two opposite
+directions here; keeping them straight is the whole mental model:
+
+```
+┌─ EMIT (runtime) ────────────────────────┐   ┌─ EVALUATE (offline, SAES side) ─────────┐
+│  Claude Agent SDK        (run_agent.py)  │   │  saes eval /aws/saes/agentsdk-results    │
+│    │  built-in OpenTelemetry             │   │    1. discover session ids in the group  │
+│    │  emits claude_code.* events         │   │    2. fetch raw span records             │
+│    ▼  OTLP/http → :4318                  │   │    3. reconstruct the turn(s)            │
+│  ADOT collector (Docker)                 │   │       (prompt · final answer · tools)    │
+│    │  awscloudwatchlogs exporter         │   │    4. score each turn with an LLM judge  │
+│    ▼                                     │   │    5. write report to LOCAL disk         │
+│  CloudWatch Logs ────────────────────────────▶   out/agentsdk_report.{html,json}       │
+│  /aws/saes/agentsdk-results              │   │       (the OUTPUT — NOT in CloudWatch)   │
+│  (raw telemetry ONLY — the INPUT)        │   │                                          │
+└──────────────────────────────────────────┘   └──────────────────────────────────────────┘
+```
+
+1. **Agent runs** — with `CLAUDE_CODE_ENABLE_TELEMETRY=1` the SDK's built-in OTEL
+   emits each step (user prompt, API bodies, tool decision/result, final answer) as
+   `claude_code.*` events over **OTLP**. It does not write CloudWatch directly.
+2. **Collector forwards** — an ADOT collector receives OTLP and its
+   `awscloudwatchlogs` exporter writes each raw event into
+   `/aws/saes/agentsdk-results`.
+3. **CloudWatch holds the raw telemetry** — this is the evaluation *input*, not a
+   result.
+4. **SAES evaluates** — `saes eval` reads that group back, reconstructs the turn, and
+   scores it with the judge.
+5. **Result lands on local disk** — the terminal table plus any `--html`/`--json`
+   files. `saes eval` does **not** write results back to CloudWatch.
+
+**Why the report isn't inside `/aws/saes/agentsdk-results`.** That log group is the
+agent's *input*, not SAES's *output* — they flow in opposite directions. `saes eval`
+is an offline reader: it pulls raw records *out* of CloudWatch, scores locally, and
+writes the report to `out/`. (Analogy: the log group is the camera *tape*; the report
+is the *write-up* you make after watching it — the write-up never appears on the
+tape.) To land the *scores* in CloudWatch, use online mode, which writes them to a
+**separate** results log group:
+
+```bash
+saes serve /aws/saes/agentsdk-results --results-log-group /aws/saes/agentsdk-scores
+```
+
+Its CloudWatch record shape is unlike the AgentCore agents' (single scope, event kind
+in `attributes["event.name"]`, turns keyed by `prompt.id`, internal session-title
+calls filtered) — SAES ingestion handles it; see §7.4. Honest limits: the SDK exports
+no tool-*result* payload, and the tool-parameter judge is non-deterministic on this
+borderline case. The raw `anthropic` API SDK, by contrast, emits no usable OTEL at all
+(bypasses botocore) — the negative boundary that sharpens the "contract is on the
+telemetry" claim.
 
 ### 8.5 The evaluation, step by step
 

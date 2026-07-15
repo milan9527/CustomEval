@@ -71,6 +71,66 @@ def test_handles_json_string_content():
     assert s.trajectory == ["t1"]
 
 
+def test_claude_agent_sdk_messages_api_shape():
+    """The Claude Agent SDK emits `claude_code.*` OTEL carrying Anthropic
+    Messages-API bodies — tool calls as {"type":"tool_use", name, input} (not
+    Converse {"toolUse":...}), and api_request/response_body as bare content
+    lists. SAES normalizes the Messages-API shape and disambiguates bare content
+    by scope name (request→user, response→assistant)."""
+    records = [
+        {"traceId": "t1", "scope": {"name": "claude_code.user_prompt"},
+         "attributes": {"session.id": "cc"}, "timeUnixNano": "100",
+         "body": {"prompt": "What is the weather in Tokyo?"}},
+        {"traceId": "t1", "scope": {"name": "claude_code.api_response_body"},
+         "attributes": {"session.id": "cc"}, "timeUnixNano": "102",
+         "body": {"content": [{"type": "tool_use", "id": "tu1",
+                               "name": "get_weather", "input": {"city": "Tokyo"}}]}},
+        {"traceId": "t1", "scope": {"name": "claude_code.api_request_body"},
+         "attributes": {"session.id": "cc"}, "timeUnixNano": "103",
+         "body": {"messages": [{"role": "user", "content": [
+             {"type": "tool_result", "tool_use_id": "tu1", "content": "Tokyo: 22C"}]}]}},
+        {"traceId": "t1", "scope": {"name": "claude_code.api_response_body"},
+         "attributes": {"session.id": "cc"}, "timeUnixNano": "104",
+         "body": {"content": [{"type": "text",
+                               "text": "The weather in Tokyo is 22C, partly cloudy."}]}},
+    ]
+    s = extract_session_tool_calls(records)[0]
+    assert s.trajectory == ["get_weather"]
+    assert s.tool_calls[0].arguments == {"city": "Tokyo"}
+    assert s.tool_calls[0].result == "Tokyo: 22C"
+    assert len(s.turns) == 1
+    assert s.turns[0].user_prompt == "What is the weather in Tokyo?"
+    assert "cloudy" in s.turns[0].agent_response.lower()
+    assert s.turns[0].trajectory == ["get_weather"]
+
+
+def test_recovers_turn_from_real_claude_agent_sdk_records():
+    """REAL CloudWatch records captured from a deployed Claude Agent SDK run
+    (OTLP → ADOT collector → CloudWatch). Their shape differs from the documented
+    `claude_code.*` scope fixtures: every record shares one scope
+    (`com.anthropic.claude_code.events`), the event kind is in
+    `attributes["event.name"]`, turns are keyed by `attributes["prompt.id"]` (no
+    trace_id), text lives directly in attributes (`user_prompt`→prompt,
+    `assistant_response`→response), and the CLI mixes an internal
+    `generate_session_title` call (query_source) into the same session. SAES must
+    recover ONE clean turn — real prompt, real FINAL answer (not the intermediate
+    "I'll run that" or the title JSON), and the Bash tool call with args."""
+    records = json.loads(
+        (FIXTURES / "claude_agent_sdk_cloudwatch_records.json").read_text()
+    )
+    sessions = extract_session_tool_calls(records)
+    assert len(sessions) == 1
+    s = sessions[0]
+    assert s.trajectory == ["Bash"]
+    assert s.tool_calls[0].arguments.get("command") == "echo hello-from-agent"
+    assert len(s.turns) == 1
+    t = s.turns[0]
+    assert t.user_prompt.startswith("Run the bash command")
+    assert t.agent_response == "The output is: `hello-from-agent`"  # final, by seq
+    assert "title" not in t.agent_response          # housekeeping excluded
+    assert t.trajectory == ["Bash"]
+
+
 def test_no_tool_calls_but_text_recovered():
     # a text-only turn: no tool calls, but the conversation text IS recovered
     # (used for turn synthesis / F10).

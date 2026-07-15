@@ -661,7 +661,7 @@ Tool 级别和 trace 级别的评估器需要更多（见下文）。
 | `strands.telemetry.tracer` | Strands mapper（完整：agent + tool span） | Strands SDK |
 | `opentelemetry.instrumentation.langchain` | LangChain-OTEL mapper | 通过 OTEL instrumentor 的 LangChain/LangGraph |
 | `openinference.instrumentation.langchain` | OpenInference mapper | OpenInference LangChain instrumentor |
-| 其他任意值（`…crewai`、`botocore…`、自定义） | **无匹配** → 原生读取可能抛异常 | CrewAI、纯 boto3、自定义 |
+| 其他任意值（`…crewai`、`botocore…`、`com.anthropic.claude_code.events`、自定义） | **无匹配** → 原生读取可能抛异常 | CrewAI、纯 boto3、Claude Agent SDK、自定义 |
 
 **如果你的 scope 不在这三个之列，你并没有出错**——SAES 的补全（§7.2）会从原始 Bedrock
 Converse span（`botocore` 的 `toolUse`/`toolResult`、带 role 的 `body.message`）恢复出轨迹 +
@@ -694,6 +694,21 @@ Converse span（`botocore` 的 `toolUse`/`toolResult`、带 role 的 `body.messa
 - **无框架（裸 boto3）**——无需添加任何埋点：AgentCore 的 botocore Bedrock 埋点已经捕获了
   Converse 请求/响应（包括作为 `body.message` 的最终答案）。SAES 从中重建轮次 +
   工具。只要确保你的 Bedrock 调用走的是被埋点的 client（在 AgentCore Runtime 上默认如此）。
+- **Claude Agent SDK**（`claude-agent-sdk`）——自带 OpenTelemetry。设置
+  `CLAUDE_CODE_ENABLE_TELEMETRY=1` + `OTEL_LOG_RAW_API_BODIES=1`，并通过 OTLP 导出到一个
+  转发到 CloudWatch 的 collector（它不会直接写 CloudWatch，其文档也不建议用 `console`
+  exporter）。它的记录形态与其他框架都不同：所有记录共用一个 scope
+  (`com.anthropic.claude_code.events`)，事件类型在 `attributes["event.name"]`，轮次以
+  `attributes["prompt.id"]` 分组（没有 `traceId`），文本直接在专用的 `user_prompt` /
+  `assistant_response` 事件里。SAES 采集层已处理这一切；CLI 内部的会话标题生成调用
+  (`query_source="generate_session_title"`) 会被过滤，使评分对象为真实轮次。**已端到端验证**
+  （agent → OTLP → ADOT collector → CloudWatch → `saes eval`，12 个无参考评估器全部产出分数）
+  ——见 [examples/agent_sdk/](../examples/agent_sdk/README.md)。发射端缺口：SDK 的
+  `tool_result` 事件只带元数据，工具*结果*载荷无法恢复（trajectory、参数、prompt、最终答案都能恢复）。
+- **裸 Anthropic API SDK**（`anthropic` / `AnthropicBedrock`）——**原样无法评估。**
+  它用自己的 httpx + SigV4 client 调用 Bedrock，botocore 埋点看不到，因此不发射任何可用 OTEL。
+  修复在发射端（给它的 HTTP client 埋点，或改走 boto3）。这是上面 Claude *Agent* SDK 的反面
+  ——契约在于遥测，而非 SDK 名称。
 
 #### 那个习惯
 
@@ -801,6 +816,57 @@ judge 错误，且被逐单元格捕获了。Strands **确实**有原生的 `Too
 **在补全之前，无框架和 CrewAI 只能运行 1/15（trajectory）。补全之后，它们运行 15/15。**
 这是框架无关这一主张在完整深度上成立的具体证明——完全在 SAES 采集层实现，不改 agent、不
 重新部署（针对同一批已部署 agent 的 CloudWatch 数据验证）。
+
+#### 第五种框架，端到端：Claude Agent SDK
+
+除了上面四个 AgentCore agent，**Claude Agent SDK**（`claude-agent-sdk`）走了*完整的发射
+路径*——agent → OTLP → ADOT collector → CloudWatch → `saes eval`——以证明 OTLP→CloudWatch
+这段接线，而不只是 SAES 侧的解析。在 3 个真实 session 上，12 个无参考评估器全部产出分数，轮次
+被忠实重建（prompt、最终答案、`["Bash"]` trajectory、参数）。完整记录、源码与可浏览的 HTML
+报告见 **[examples/agent_sdk/](../examples/agent_sdk/README.md)**。
+
+**完整链路——从 agent 运行到评估结果。** 这里有两个**相反的方向**，理清它们就抓住了全部要点：
+
+```
+┌─ 发射（运行时）──────────────────────────┐   ┌─ 评估（离线，SAES 侧）──────────────────┐
+│  Claude Agent SDK        (run_agent.py)  │   │  saes eval /aws/saes/agentsdk-results    │
+│    │  自带 OpenTelemetry                 │   │    1. 在日志组里发现 session id          │
+│    │  发出 claude_code.* 事件            │   │    2. 拉取原始 span 记录                 │
+│    ▼  OTLP/http → :4318                  │   │    3. 重建轮次（prompt·最终答案·工具）   │
+│  ADOT collector (Docker)                 │   │    4. 用 LLM judge 给每个轮次打分        │
+│    │  awscloudwatchlogs exporter         │   │    5. 把报告写到【本地磁盘】             │
+│    ▼                                     │   │       out/agentsdk_report.{html,json}    │
+│  CloudWatch Logs ────────────────────────────▶   （这是【输出】——不在 CloudWatch 里）  │
+│  /aws/saes/agentsdk-results              │   │                                          │
+│  （只有原始遥测——【输入】）              │   │                                          │
+└──────────────────────────────────────────┘   └──────────────────────────────────────────┘
+```
+
+1. **agent 运行**——开启 `CLAUDE_CODE_ENABLE_TELEMETRY=1` 后，SDK 自带的 OTEL 把每一步
+   （用户 prompt、API 请求/响应体、工具决策/结果、最终答案）作为 `claude_code.*` 事件通过
+   **OTLP** 发出。它不会直接写 CloudWatch。
+2. **collector 转发**——ADOT collector 接收 OTLP，用 `awscloudwatchlogs` exporter 把每条
+   原始事件写进 `/aws/saes/agentsdk-results`。
+3. **CloudWatch 里存的是原始遥测**——这是评估的*输入*，不是结果。
+4. **SAES 评估**——`saes eval` 反向读这个日志组，重建轮次，交给 judge 打分。
+5. **结果落在本地磁盘**——终端表格，加上你指定的 `--html`/`--json` 文件。`saes eval`
+   **不会**把结果写回 CloudWatch。
+
+**为什么在 `/aws/saes/agentsdk-results` 里看不到报告。** 因为那个日志组是 agent 的*输入*，不是
+SAES 的*输出*——两者方向相反。`saes eval` 是一个离线**读取器**：它从 CloudWatch 把原始记录
+读*出来*，在本地算分，把报告写到 `out/`。（打个比方：日志组是监控摄像头的*录像带*；HTML 报告是
+你看完录像写的*巡查报告*——报告不会跑回录像带里。）想让*分数*进 CloudWatch，用在线模式，它会
+把结果写到一个**独立的**结果日志组：
+
+```bash
+saes serve /aws/saes/agentsdk-results --results-log-group /aws/saes/agentsdk-scores
+```
+
+它的 CloudWatch 记录形态与 AgentCore agent 都不同（单一 scope、事件类型在
+`attributes["event.name"]`、轮次以 `prompt.id` 分组、内部会话标题调用被过滤）——SAES 采集层
+已处理，见 §7.4。诚实的限制：SDK 不导出工具*结果*载荷，且工具参数 judge 在这个边界 case 上
+非确定性。相比之下，裸 `anthropic` API SDK 完全不发射可用 OTEL（绕过 botocore）——这是让
+"契约在于遥测"这一主张更加清晰的反面边界。
 
 ### 8.5 逐步拆解评估过程
 

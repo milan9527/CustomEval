@@ -31,6 +31,20 @@ AgentCore starter toolkit (see WALKTHROUGH.md §Part A); the deploy state
 (`.bedrock_agentcore.yaml`, which carries your account id/role ARNs) is
 intentionally **not** committed.
 
+## Claude Agent SDK — the OTLP→CloudWatch emit path (`agent_sdk/`)
+
+A fifth framework, and the one that proves the full **OTLP → collector →
+CloudWatch → `saes eval`** path end to end: a **Claude Agent SDK**
+(`claude-agent-sdk`) agent with its built-in OpenTelemetry, exporting over OTLP to
+an ADOT collector that forwards to CloudWatch, then evaluated on-demand. All 12
+reference-free evaluators produced real scores over 3 live sessions. See
+**[agent_sdk/README.md](agent_sdk/README.md)** — it includes the agent
+(`run_agent.py`), the collector config (`collector.yaml`), the verbatim result
+(`AGENT_SDK_EVAL_OUTPUT.txt` / `.json`), and the honest notes (the SDK exports no
+tool-result payload; the tool-parameter judge is non-deterministic on this case).
+This is the positive counterpart to the raw-`anthropic`-SDK negative result
+(bypasses botocore, emits nothing).
+
 ## Scripts (each prints real judge scores)
 
 | Script | What it demonstrates | Raw output |
