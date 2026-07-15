@@ -1,5 +1,7 @@
 # SAES — Complete walkthrough: AgentCore Runtime → CloudWatch → evaluation
 
+> 中文版见 [WALKTHROUGH.zh.md](WALKTHROUGH.zh.md)。
+
 One linear path, no jumps. You will: build a small agent, deploy it to Amazon
 Bedrock **AgentCore Runtime**, invoke it (which auto-exports OTEL traces to
 **CloudWatch**), then have **SAES** read those traces and score them. Every

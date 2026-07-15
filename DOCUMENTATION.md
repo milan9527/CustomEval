@@ -1,5 +1,7 @@
 # SAES — Strands Agent Evaluation Suite
 
+> 中文版见 [DOCUMENTATION.zh.md](DOCUMENTATION.zh.md)。
+
 **Open-source evaluation for AI agents, built with the [Strands Agents SDK](https://strandsagents.com/) and integrated with Amazon Bedrock AgentCore Observability.**
 
 This is the single, consolidated reference for SAES. It covers what the project

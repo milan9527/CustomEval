@@ -1,5 +1,7 @@
 # SAES — Strands Agent Evaluation Suite
 
+> 中文版见 [README.zh.md](README.zh.md)。
+
 Open-source evaluation for AI agents, built with the [Strands Agents SDK](https://strandsagents.com/) and integrated with Amazon Bedrock AgentCore Observability.
 
 - **Bring your own judge** — any OpenAI-compatible endpoint with tool-calling / structured-output support (OpenAI, Azure, vLLM, LiteLLM, Bedrock) serves as the LLM-as-a-Judge. `saes doctor --judge` verifies it before you run.
