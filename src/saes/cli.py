@@ -533,6 +533,11 @@ def serve(
     interval: float = typer.Option(60.0, "--interval", help="Seconds between polling cycles"),
     state: Path | None = typer.Option(None, "--state", help="JSON state file (survives restarts)"),
     once: bool = typer.Option(False, "--once", help="Run a single cycle and exit"),
+    print_scores: bool = typer.Option(
+        False, "--print-scores",
+        help="Also print each scored batch's per-evaluator scores in the terminal "
+             "(scores always go to CloudWatch either way)",
+    ),
 ) -> None:
     """Continuously evaluate a live agent's new CloudWatch traffic (online mode).
 
@@ -601,13 +606,21 @@ def serve(
         typer.secho("error: give a RUNTIME id or --config", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=2)
 
+    def _print_report(doc) -> None:
+        typer.echo(f"  scores ({doc.judge_model}):")
+        for ev_id, stats in doc.aggregates.items():
+            typer.echo(
+                f"    {ev_id:30s} avg={stats['avg']:.3f}  "
+                f"pass={stats['pass_rate'] * 100:.0f}%  n={int(stats['n'])}"
+            )
+
     provider = build_provider(cfg.data_source.cloudwatch)
     timeout = cfg.session.timeout_minutes if cfg.session else 30.0
     tracker = SessionTracker(timeout_minutes=timeout, state_path=state)
     worker = OnlineWorker(
         cfg,
         discover=lambda: discover_sessions_with_last_seen(provider, cfg.data_source.cloudwatch),
-        score=make_scorer(cfg),
+        score=make_scorer(cfg, on_report=_print_report if print_scores else None),
         tracker=tracker,
         log=lambda m: typer.echo(f"  {m}"),
     )

@@ -357,7 +357,10 @@ def test_serve_once_runs_one_cycle(tmp_path, monkeypatch):
         "saes.ingest.cloudwatch.discover_sessions_with_last_seen",
         lambda provider, cw: [("s1", now_ms - 20 * 60_000)],
     )
-    monkeypatch.setattr("saes.online.scoring.make_scorer", lambda cfg: (lambda ids: list(ids)))
+    monkeypatch.setattr(
+        "saes.online.scoring.make_scorer",
+        lambda cfg, on_report=None: (lambda ids: list(ids)),
+    )
 
     cfg = _write_online_config(tmp_path)
     result = runner.invoke(app, ["serve", "-c", str(cfg), "--once"])
@@ -379,7 +382,7 @@ def test_serve_zero_config_from_runtime_id(monkeypatch):
 
     captured = {}
 
-    def _scorer(cfg):
+    def _scorer(cfg, on_report=None):
         captured["cfg"] = cfg
         return lambda ids: list(ids)
 

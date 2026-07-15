@@ -21,12 +21,14 @@ from ..run.ground_truth import load_ground_truth
 from ..run.runner import RunResult, _aggregate, _case_for
 
 
-def make_scorer(config: EvaluationConfig):
+def make_scorer(config: EvaluationConfig, on_report=None):
     """Build a `score(session_ids) -> scored_ids` callable for the worker.
 
     Resolves the judge + evaluators once; each call scores a batch of session
     ids through the native provider's `as_task()` (per-session read+map) and
-    emits to the configured CloudWatch sink.
+    emits to the configured CloudWatch sink. If `on_report` is given, it is
+    called with the batch's ReportDocument after scoring (used by the CLI's
+    --print-scores to surface per-evaluator scores in the terminal).
     """
     gt = load_ground_truth(config.ground_truth)
     judge_model = build_model(config.judge)
@@ -67,6 +69,11 @@ def make_scorer(config: EvaluationConfig):
             try:
                 emit_to_cloudwatch(doc, sink, region=region)
             except Exception:  # noqa: BLE001 - emit failure shouldn't lose the scores
+                pass
+        if on_report is not None:
+            try:
+                on_report(doc)
+            except Exception:  # noqa: BLE001 - printing must never break scoring
                 pass
         # every session in the batch was processed by the native run
         return list(session_ids)

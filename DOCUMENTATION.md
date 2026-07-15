@@ -1072,6 +1072,9 @@ default, and **auto-creates a results sink** at `/aws/saes/<runtime>-results`
 - `--session-timeout N` — a session is "complete" after N minutes with no new span.
 - `--interval N` — seconds between polling cycles (default 60).
 - `--state FILE` — persist which sessions were scored across restarts.
+- `--print-scores` — also print each scored batch's per-evaluator scores in the
+  terminal (they always go to CloudWatch either way; online mode is
+  results-to-CloudWatch by default, unlike `saes eval` which prints).
 
 Verified live: `saes serve saesstrands-... --once` scored 3/3 sessions and wrote
 results to the auto-derived CloudWatch group.
