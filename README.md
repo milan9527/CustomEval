@@ -64,6 +64,10 @@ No agent yet? Score a bundled trace sample in 1 minute — see
   evaluator catalog, per-framework support, evaluation scenarios + results
   analysis, online evaluation, and the verification log.
 - **[SPEC.md](SPEC.md)** — the full technical specification.
+- **[.claude/skills/otel-eval-contract/](.claude/skills/otel-eval-contract/SKILL.md)** —
+  the OTEL contract from DOCUMENTATION.md §7.4 packaged as a Claude Code /
+  Claude Agent SDK **skill**: open the repo in Claude Code and any agent it
+  generates follows the contract (and is therefore evaluable) automatically.
 - **[examples/](examples/)** — deployable agent sources and the **raw records**
   of the real runs behind the results: the framework matrix, good-vs-bad
   multi-turn, discrimination suites, and
@@ -75,8 +79,8 @@ No agent yet? Score a bundled trace sample in 1 minute — see
 
 M1–M3 complete (offline evaluation, CloudWatch ingestion, online worker, CDK
 dashboard). 198 unit tests. Verified end-to-end with real Bedrock judges (offline
-+ online), a real deployed AgentCore Runtime agent, and four frameworks (Strands,
-LangGraph, CrewAI, no-framework) — all reaching 15/15 evaluators. Not yet released.
+and online), a real deployed AgentCore Runtime agent, and five frameworks (Strands,
+LangGraph, CrewAI, Claude Agent SDK, no-framework). Not yet released.
 
 ## License
 

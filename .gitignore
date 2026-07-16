@@ -35,3 +35,8 @@ node_modules/
 
 # Example run outputs
 examples/out/
+
+# AgentCore deploy state (carries account id / role ARNs)
+.bedrock_agentcore.yaml
+.bedrock_agentcore/
+examples/agents/*/smoke_dump.jsonl
